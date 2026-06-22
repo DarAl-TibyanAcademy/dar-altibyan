@@ -112,6 +112,7 @@
       margin: 20px; padding: 20px; background: var(--card); border-radius: 16px; border: 2px solid var(--border); text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
     .social-title { font-size: 20px; color: var(--primary); font-weight: 800; margin-bottom: 5px; }
+    .social-subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; font-weight: bold; }
     .social-cards-container { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px; }
     .social-card { display: flex; flex-direction: column; align-items: center; gap: 10px; }
     .social-card img { width: 110px; height: 110px; border-radius: 12px; border: 2px solid var(--border); }
@@ -170,6 +171,7 @@
     .match-btn.active { border-color: var(--primary); background: #E1F5FE; }
     .match-btn.matched { visibility: hidden; }
 
+    /* Letter Grid (Crossword/WordSearch) */
     .letter-grid-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; direction: rtl;}
     .letter-btn { padding: 15px 5px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); font-weight: 700; font-size: 28px; text-align: center; cursor: pointer; box-shadow: 0 4px 0 var(--border); transition: transform 0.1s; }
     .letter-btn:active { transform: translateY(4px); box-shadow: 0 0 0; }
@@ -177,6 +179,7 @@
     .letter-answer-box { min-height: 70px; border: 2px dashed #CCC; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 36px; margin-bottom: 20px; direction: rtl; gap: 5px;}
     .letter-answer-item { cursor: pointer; color: var(--primary); font-weight: bold; }
 
+    /* Bottom Action Bar & Feedback */
     .bottom-bar { padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); border-top: 2px solid var(--border); background: var(--card); position: relative; z-index: 30; }
     
     .feedback-sheet {
@@ -190,6 +193,14 @@
     .feedback-sheet.wrong { background: #FFDFE0; color: var(--danger-dark); }
     .feedback-content { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; font-weight: 800; font-size: 24px; }
     
+    .text-center { text-align: center; }
+    .mt-1 { margin-top: 10px; }
+    .mb-2 { margin-bottom: 20px; }
+
+    /* Mistakes Review Modal */
+    #screen-mistakes-intro { justify-content: center; align-items: center; padding: 30px; text-align: center; background: #FFF9C4; }
+
+    /* User Message Toast */
     #user-message-toast {
       position: fixed; top: 0; left: 50%; transform: translateX(-50%);
       background: var(--warning); color: white; padding: 10px 20px;
@@ -201,49 +212,1229 @@
 <body>
 
 <div id="user-message-toast"></div>
+
 <div id="app-container">
-  <!-- الشاشات كما هي في كودك الأصلي -->
-  <div id="screen-map" class="screen active">...</div>
-  <div id="screen-welcome" class="screen">...</div>
-  <div id="screen-exercise" class="screen">...</div>
-  <div id="screen-mistakes-intro" class="screen">...</div>
-  <div id="screen-lesson-complete" class="screen">...</div>
+
+  <div id="screen-map" class="screen active">
+    <div class="top-bar">
+      <div class="stat-chip">🔥 <span id="streak-count">0</span></div>
+      <div class="stat-chip xp">⭐ <span id="total-xp">0</span></div>
+      <div style="font-weight:bold; cursor:pointer;" onclick="resetProgress()">⚙️</div>
+    </div>
+    <div class="map-header">Al-Tibyan Academy</div>
+    
+    <div class="lesson-path" id="lesson-path"></div>
+
+    <div class="social-section">
+        <h3 class="social-title">Bizga qo'shiling</h3>
+        <h4 class="arabic-text" style="font-size: 18px; color: var(--primary-dark); margin-bottom: 15px; text-align: center;">تواصل معنا عبر تليجرام</h4>
+        <div class="social-cards-container">
+            <div class="social-card">
+                <img src="image_906d2a.png" alt="Channel Barcode">
+                <a href="https://t.me/dar_altibyan" target="_blank" class="social-link telegram">Kanalga ulanish</a>
+            </div>
+            <div class="social-card">
+                <img src="image_906ce5.png" alt="Admin Barcode">
+                <a href="https://t.me/Dar_altibyan_admin" target="_blank" class="social-link admin">Adminga yozish</a>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <div id="screen-welcome" class="screen">
+    <div class="welcome-icon" id="welcome-icon">👋</div>
+    <h2 id="welcome-title" class="mb-2">Dars</h2>
+    <h3 id="welcome-title-ar" class="arabic-text mb-2 text-muted" style="text-align: center;">الدَّرْسُ</h3>
+    
+    <div class="word-count-badge">
+      📚 Bu darsda <span id="word-count" style="font-size: 20px;">0</span> ta so'z/ibora o'rganasiz
+    </div>
+    
+    <div style="text-align: left; width: 100%; font-weight: 800;">Yangi so'zlar va iboralar:</div>
+    <div class="vocab-preview" id="vocab-preview"></div>
+    
+    <div style="width: 100%; position: sticky; bottom: 0; background: var(--bg); padding-top: 10px;">
+        <button class="btn btn-primary" onclick="startLesson()">BOSHLASH</button>
+    </div>
+  </div>
+
+  <div id="screen-exercise" class="screen">
+    <div class="exercise-header">
+      <div style="font-size: 24px; cursor: pointer;" onclick="showScreen('map')">✕</div>
+      <div class="progress-bg"><div class="progress-fill" id="progress-bar"></div></div>
+      <div class="hearts" id="hearts-display">❤️❤️❤️❤️❤️</div>
+    </div>
+    
+    <div class="exercise-content" id="exercise-content"></div>
+
+    <div class="bottom-bar">
+      <button class="btn btn-primary" id="check-btn" onclick="checkAnswer()">TEKSHIRISH</button>
+    </div>
+
+    <div class="feedback-sheet" id="feedback-sheet">
+      <div class="feedback-content">
+        <div id="feedback-msg">To'g'ri!</div>
+        <div id="feedback-emoji">✅</div>
+      </div>
+      <div id="feedback-correct-answer" class="arabic-text" style="display:none; margin-bottom:15px; text-align:center;"></div>
+      <button class="btn" id="feedback-btn" onclick="nextQuestion()">DAVOM ETISH</button>
+    </div>
+  </div>
+
+  <div id="screen-mistakes-intro" class="screen">
+    <div style="font-size: 80px; margin-bottom: 20px;">🛠️</div>
+    <h2 style="color: #CC7A00; font-size: 32px; margin-bottom: 15px;">Xatolarni to'g'rilaymiz!</h2>
+    <h3 dir="rtl" class="arabic-text" style="color: #CC7A00; text-align: center; margin-bottom: 20px;">فقرة مراجعة الأخطاء</h3>
+    <p style="font-size: 18px; color: var(--text); margin-bottom: 30px; line-height: 1.5;">
+      Siz ajoyibsiz! Qiyinchiliklar o'rganishning bir qismidir.<br>
+      Keling, darsda xato qilingan savollarni birgalikda qayta ko'rib chiqamiz.
+    </p>
+    <button class="btn btn-warning" onclick="startMistakesReview()">XATOLARNI TUZATISH</button>
+  </div>
+
+  <div id="screen-lesson-complete" class="screen" style="justify-content: center; align-items: center; padding: 20px; text-align: center;">
+    <div style="font-size: 80px; margin-bottom: 10px;" id="completion-emoji">🥳</div>
+    <h2 style="color: var(--success); font-size: 28px; margin-bottom: 5px;">Dars yakunlandi!</h2>
+    <p id="completion-msg" style="font-size: 16px; color: var(--text-muted); margin-bottom: 20px;">Mukammal!</p>
+    
+    <div style="background: var(--card); padding: 15px; border-radius: 16px; border: 2px solid var(--border); width: 100%; margin-bottom: 20px; display:flex; justify-content: space-around;">
+      <div>
+        <div style="font-size: 14px; color: var(--primary); font-weight:bold;">Natija (Accuracy)</div>
+        <div style="font-size: 24px; font-weight:800; color: var(--primary-dark);"><span id="result-accuracy">100</span>%</div>
+      </div>
+      <div style="border-left: 2px solid var(--border); padding-left: 15px;">
+        <div style="font-size: 14px; color: var(--danger); font-weight:bold;">Xatolar (Mistakes)</div>
+        <div style="font-size: 24px; font-weight:800; color: var(--danger-dark);"><span id="result-wrong">0</span></div>
+      </div>
+      <div style="border-left: 2px solid var(--border); padding-left: 15px;">
+        <div style="font-size: 14px; color: var(--warning); font-weight:bold;">XP</div>
+        <div style="font-size: 24px; font-weight:800;">+<span id="earned-xp">0</span></div>
+      </div>
+    </div>
+    
+    <button class="btn btn-primary" onclick="finishLesson()">DAVOM ETISH</button>
+  </div>
+
 </div>
 
 <script>
-/* البيانات والمنطق الأساسي كما في كودك */
-/* ... (هنا توضع بقية الدوال: initMap, startLesson, إلخ) ... */
+/* =========================================
+   CURRICULUM DATA
+========================================= */
+const curriculum = [
+  {
+    id: 'unit1', title: "Salomlashish va Tanishtirish", titleAr: "أَوَّلاً وَثَانِياً", icon: '🤝',
+    lessons: [
+      {
+        id: 'l1', title: "Salomlashish", titleAr: "التَّحِيَّاتُ", icon: '👋', xp: 20,
+        vocabulary: [
+          { arabic: "السَّلَامُ عَلَيْكُمْ", uzbek: "Assalomu alaykum" },
+          { arabic: "وَعَلَيْكُمُ السَّلَامُ", uzbek: "Va alaykum assalom" },
+          { arabic: "مَرْحَبًا", uzbek: "Salom / Marhabo" },
+          { arabic: "أَهْلًا وَسَهْلًا", uzbek: "Xush kelibsiz" },
+          { arabic: "صَبَاحُ الْخَيْرِ", uzbek: "Xayrli tong" },
+          { arabic: "صَبَاحُ النُّورِ", uzbek: "Tongingiz xayrli bo'lsin" },
+          { arabic: "مَسَاءُ الْخَيْرِ", uzbek: "Xayrli kech" },
+          { arabic: "مَسَاءُ النُّورِ", uzbek: "Kechingiz xayrli bo'lsin" }
+        ],
+        questions: [
+          { type: "matchPairs", pairs: [
+            { arabic: "السَّلَامُ عَلَيْكُمْ", uzbek: "Assalomu alaykum" }, 
+            { arabic: "مَرْحَبًا", uzbek: "Salom" }, 
+            { arabic: "أَهْلًا وَسَهْلًا", uzbek: "Xush kelibsiz" },
+            { arabic: "صَبَاحُ الْخَيْرِ", uzbek: "Xayrli tong" },
+            { arabic: "مَسَاءُ الْخَيْرِ", uzbek: "Xayrli kech" }
+          ]},
+          { type: "fillBlank", uzbek: "Xayrli kech (Javobi)", arabic: "مَسَاءُ ___", fullArabic: "مَسَاءُ النُّورِ", blankWord: "النُّورِ", choices: ["النُّورِ", "كِتَابٌ", "أَنْتَ"], correct: "النُّورِ" },
+          { type: "listenSelect", arabic: "أَهْلًا وَسَهْلًا", uzbek: "Xush kelibsiz", options: ["Assalomu alaykum", "Xayrli tong", "Xush kelibsiz", "Xayrli kech"], correct: "Xush kelibsiz" },
+          { type: "sentenceBuilder", uzbek: "Va alaykum assalom", arabic: "وَعَلَيْكُمُ السَّلَامُ", words: ["وَعَلَيْكُمُ", "السَّلَامُ", "كِتَابٌ", "مَدِينَةٌ"], distractors: ["كِتَابٌ", "مَدِينَةٌ"] }
+        ]
+      },
+      {
+        id: 'l2', title: "Tanishuv", titleAr: "التَّعَارُفُ", icon: '🌍', xp: 20,
+        vocabulary: [
+          { arabic: "أَنَا أَحْمَدُ، أَنَا مِنْ سُورِيَّةَ", uzbek: "Men Ahmadman, men Suriyadanman" },
+          { arabic: "أَنَا فَاطِمَةُ، أَنَا مِنَ الْمَغْرِبِ", uzbek: "Men Fotimaman, men Marokashdanman" },
+          { arabic: "أَنَا حَمَدُ، أَنَا مِنْ قَطَرَ", uzbek: "Men Hamadman, men Qatardanman" },
+          { arabic: "أَنَا سَلْمَى، أَنَا مِنْ لُبْنَانَ", uzbek: "Men Salmoman, men Livandanman" },
+          { arabic: "أَنَا وَائِلُ، أَنَا مِنْ مِصْرَ", uzbek: "Men Voilman, men Misrdanman" },
+          { arabic: "زَيْنَبُ، تُرْكِيَا", uzbek: "Zaynab, Turkiya" },
+          { arabic: "أَمْرِيكَا", uzbek: "Amerika" }
+        ],
+        questions: [
+          { type: "sentenceBuilder", uzbek: "Men Salmoman, men Livandanman", arabic: "أَنَا سَلْمَى أَنَا مِنْ لُبْنَانَ", words: ["أَنَا", "سَلْمَى", "أَنَا", "مِنْ", "لُبْنَانَ", "هَاتِفٌ", "فِي"], distractors: ["هَاتِفٌ", "فِي"] },
+          { type: "sentenceBuilder", uzbek: "Men Voilman, men Misrdanman", arabic: "أَنَا وَائِلُ أَنَا مِنْ مِصْرَ", words: ["أَنَا", "وَائِلُ", "أَنَا", "مِنْ", "مِصْرَ", "بَابٌ"], distractors: ["بَابٌ"] },
+          { type: "matchPairs", pairs: [
+            { arabic: "سُورِيَّةَ", uzbek: "Suriya" }, 
+            { arabic: "الْمَغْرِبِ", uzbek: "Marokash" }, 
+            { arabic: "قَطَرَ", uzbek: "Qatar" },
+            { arabic: "تُرْكِيَا", uzbek: "Turkiya" },
+            { arabic: "أَمْرِيكَا", uzbek: "Amerika" }
+          ]},
+          { type: "fillBlank", uzbek: "Men Zaynabman, men Turkiyadanman", arabic: "أَنَا زَيْنَبُ، أَنَا ___ تُرْكِيَا.", fullArabic: "أَنَا زَيْنَبُ، أَنَا مِنْ تُرْكِيَا.", blankWord: "مِنْ", choices: ["مِنْ", "إِلَى", "فِي"], correct: "مِنْ" }
+        ]
+      },
+      {
+        id: 'l3', title: "Savol berish", titleAr: "السُّؤَالُ عَنِ الاسْمِ وَالْبَلَدِ", icon: '❓', xp: 20,
+        vocabulary: [
+          { arabic: "مَا اسْمُكَ؟", uzbek: "Ismingiz nima? (erkak)" },
+          { arabic: "اِسْمِي فَادِي.", uzbek: "Mening ismim Fadi." },
+          { arabic: "مِنْ أَيْنَ أَنْتَ؟", uzbek: "Siz qayerdansiz? (erkak)" },
+          { arabic: "أَنَا مِنْ مِصْرَ.", uzbek: "Men Misrdanman." },
+          { arabic: "مَا اسْمُكِ؟", uzbek: "Ismingiz nima? (ayol)" },
+          { arabic: "مِنْ أَيْنَ أَنْتِ؟", uzbek: "Siz qayerdansiz? (ayol)" },
+          { arabic: "اِسْمِي سُوزَانُ.", uzbek: "Mening ismim Syuzan." }
+        ],
+        questions: [
+          { type: "fillBlank", uzbek: "Ismingiz nima? (ayollarga)", arabic: "مَا ___؟", fullArabic: "مَا اسْمُكِ؟", blankWord: "اسْمُكِ", choices: ["اسْمُكِ", "اسْمُكَ", "قَلَمُكِ"], correct: "اسْمُكِ" },
+          { type: "sentenceBuilder", uzbek: "Siz qayerdansiz? (erkaklarga)", arabic: "مِنْ أَيْنَ أَنْتَ؟", words: ["مِنْ", "أَيْنَ", "أَنْتَ؟", "هَلْ", "بَابٌ"], distractors: ["هَلْ", "بَابٌ"] },
+          { type: "listenSelect", arabic: "اِسْمِي فَادِي", uzbek: "Mening ismim Fadi", options: ["Ismingiz nima?", "Mening ismim Fadi", "Men Turkiyadanman", "Uning ismini bilaman"], correct: "Mening ismim Fadi" },
+          { type: "matchPairs", pairs: [
+            { arabic: "مَا اسْمُكَ؟", uzbek: "Ismingiz nima? (m)" }, 
+            { arabic: "مِنْ أَيْنَ أَنْتَ؟", uzbek: "Qayerdansiz? (m)" }, 
+            { arabic: "مَا اسْمُكِ؟", uzbek: "Ismingiz nima? (f)" }, 
+            { arabic: "مِنْ أَيْنَ أَنْتِ؟", uzbek: "Qayerdansiz? (f)" }
+          ]}
+        ]
+      }
+    ]
+  },
+  {
+    id: 'unit2', title: "Tovushlar va So'zlar", titleAr: "رَابِعاً: الْأَصْوَاتُ", icon: '🗣️',
+    lessons: [
+      {
+        id: 'l4', title: "So'zlar 1", titleAr: "مُفْرَدَاتٌ ١", icon: '📖', xp: 20,
+        vocabulary: [
+          { arabic: "جَبَلٌ", uzbek: "Tog'" },
+          { arabic: "هَرَمٌ", uzbek: "Ehrom (Piramida)" },
+          { arabic: "بَابٌ", uzbek: "Eshik" },
+          { arabic: "مَكْتَبَةٌ", uzbek: "Kutubxona" },
+          { arabic: "بِنْتٌ", uzbek: "Qiz" },
+          { arabic: "عِنَبٌ", uzbek: "Uzum" },
+          { arabic: "قَهْوَةٌ", uzbek: "Qahva" },
+          { arabic: "مِقَصٌّ", uzbek: "Qaychi" }
+        ],
+        questions: [
+          { type: "wordSearch", 
+            instruction: "Jadvaldan quyidagi 5 ta so'zni toping (Harflarni ketma-ket bosing):",
+            wordsToFind: [
+              { arabic: "جبل", uzbek: "Tog'" },
+              { arabic: "باب", uzbek: "Eshik" },
+              { arabic: "بنت", uzbek: "Qiz" },
+              { arabic: "عنب", uzbek: "Uzum" },
+              { arabic: "قهوة", uzbek: "Qahva" }
+            ],
+            grid: [
+              ['ج', 'ب', 'ل', 'ا', 'ك', 'م'],
+              ['س', 'ق', 'ه', 'و', 'ة', 'ي'],
+              ['د', 'ص', 'ع', 'ن', 'ب', 'ف'],
+              ['ز', 'ط', 'ب', 'ن', 'ت', 'ش'],
+              ['ر', 'ع', 'ب', 'ا', 'ب', 'خ'],
+              ['غ', 'ه', 'ل', 'و', 'ن', 'م']
+            ]
+          },
+          { type: "listenSelect", arabic: "مِقَصٌّ", uzbek: "Qaychi", options: ["Kutubxona", "Eshik", "Qaychi", "Kasalxona"], correct: "Qaychi" },
+          { type: "matchPairs", pairs: [
+            { arabic: "بَابٌ", uzbek: "Eshik" }, 
+            { arabic: "هَرَمٌ", uzbek: "Ehrom" },
+            { arabic: "قَهْوَةٌ", uzbek: "Qahva" },
+            { arabic: "جَبَلٌ", uzbek: "Tog'" },
+            { arabic: "عِنَبٌ", uzbek: "Uzum" }
+          ]},
+          { type: "letterGrid", uzbek: "Qaychi", arabic: "مِقَصٌّ", letters: ["مِ", "قَ", "صٌّ", "بِ", "ا", "لَ"] }
+        ]
+      },
+      {
+        id: 'l5', title: "So'zlar 2", titleAr: "مُفْرَدَاتٌ ٢", icon: '🔤', xp: 20,
+        vocabulary: [
+          { arabic: "جَمَلٌ", uzbek: "Tuya" },
+          { arabic: "كِتَابٌ", uzbek: "Kitob" },
+          { arabic: "تَمْرٌ", uzbek: "Xurmo" },
+          { arabic: "ثُومٌ", uzbek: "Sarimsoq" },
+          { arabic: "مُسْتَشْفَى", uzbek: "Kasalxona" },
+          { arabic: "بَيْتٌ", uzbek: "Uy" },
+          { arabic: "حَافِلَةٌ", uzbek: "Avtobus" }
+        ],
+        questions: [
+          { type: "listenSelect", arabic: "مُسْتَشْفَى", uzbek: "Kasalxona", options: ["Kalit", "Kitob", "Kasalxona", "Uy"], correct: "Kasalxona" },
+          { type: "matchPairs", pairs: [
+            { arabic: "جَمَلٌ", uzbek: "Tuya" }, 
+            { arabic: "مُسْتَشْفَى", uzbek: "Kasalxona" }, 
+            { arabic: "تَمْرٌ", uzbek: "Xurmo" },
+            { arabic: "كِتَابٌ", uzbek: "Kitob" },
+            { arabic: "ثُومٌ", uzbek: "Sarimsoq" }
+          ]},
+          { type: "letterGrid", uzbek: "Avtobus", arabic: "حَافِلَةٌ", letters: ["حَ", "ا", "فِ", "لَ", "ةٌ", "بِ"] },
+          { type: "letterGrid", uzbek: "Tuya", arabic: "جَمَلٌ", letters: ["جَ", "مَ", "لٌ", "ك", "ا", "ص"] }
+        ]
+      },
+      {
+        id: 'l6', title: "So'zlar 3 va She'r", titleAr: "مُفْرَدَاتٌ ٣ وَشِعْر", icon: '📜', xp: 20,
+        vocabulary: [
+          { arabic: "مِفْتَاحٌ", uzbek: "Kalit" },
+          { arabic: "فَمٌ", uzbek: "Og'iz" },
+          { arabic: "دَلْوٌ", uzbek: "Paqir" },
+          { arabic: "فِيلٌ", uzbek: "Fil" },
+          { arabic: "هَاتِفٌ", uzbek: "Telefon" },
+          { arabic: "بَلَدٌ", uzbek: "Davlat" },
+          { arabic: "مَدِينَةٌ", uzbek: "Shahar" },
+          { arabic: "الْخَيْلُ، اللَّيْلُ، الْبَيْدَاءُ", uzbek: "Otlar, tun, sahro" },
+          { arabic: "السَّيْفُ، الرُّمْحُ", uzbek: "Qilich, nayza" },
+          { arabic: "الْقِرْطَاسُ، الْقَلَمُ", uzbek: "Qog'oz, qalam" }
+        ],
+        questions: [
+          { type: "matchPairs", pairs: [
+            { arabic: "مِفْتَاحٌ", uzbek: "Kalit" }, 
+            { arabic: "هَاتِفٌ", uzbek: "Telefon" }, 
+            { arabic: "مَدِينَةٌ", uzbek: "Shahar" },
+            { arabic: "بَلَدٌ", uzbek: "Davlat" },
+            { arabic: "فِيلٌ", uzbek: "Fil" }
+          ]},
+          { type: "letterGrid", uzbek: "Davlat", arabic: "بَلَدٌ", letters: ["بَ", "لَ", "دٌ", "مَ", "سَ", "ا"] },
+          { type: "letterGrid", uzbek: "Otlar", arabic: "خَيْلٌ", letters: ["خَ", "يْ", "لٌ", "ب", "ص", "د"] },
+          { type: "sentenceBuilder", uzbek: "She'rni yig'ing: Qog'oz va Qalam", arabic: "الْقِرْطَاسُ وَالْقَلَمُ", words: ["الْقِرْطَاسُ", "وَ", "الْقَلَمُ", "بَابٌ"], distractors: ["بَابٌ"] }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'unit3', title: "Hafta kunlari", titleAr: "خَامِساً: أَيَّامُ الْأُسْبُوعِ", icon: '📅',
+    lessons: [
+      {
+        id: 'l7', title: "Kunlar", titleAr: "أَيَّامُ الْأُسْبُوعِ", icon: '📆', xp: 20,
+        vocabulary: [
+          { arabic: "الْأَحَدُ", uzbek: "Yakshanba" },
+          { arabic: "الْإِثْنَيْنِ", uzbek: "Dushanba" },
+          { arabic: "الثُّلَاثَاءُ", uzbek: "Seshanba" },
+          { arabic: "الْأَرْبِعَاءُ", uzbek: "Chorshanba" },
+          { arabic: "الْخَمِيسُ", uzbek: "Payshanba" },
+          { arabic: "الْجُمُعَةُ", uzbek: "Juma" },
+          { arabic: "السَّبْتُ", uzbek: "Shanba" }
+        ],
+        questions: [
+          { type: "listenSelect", arabic: "الْأَرْبِعَاءُ", uzbek: "Chorshanba", options: ["Dushanba", "Seshanba", "Chorshanba", "Yakshanba"], correct: "Chorshanba" },
+          { type: "matchPairs", pairs: [
+            { arabic: "الْأَحَدُ", uzbek: "Yakshanba" }, 
+            { arabic: "الثُّلَاثَاءُ", uzbek: "Seshanba" }, 
+            { arabic: "الْخَمِيسُ", uzbek: "Payshanba" },
+            { arabic: "الْجُمُعَةُ", uzbek: "Juma" },
+            { arabic: "السَّبْتُ", uzbek: "Shanba" }
+          ]},
+          { type: "fillBlank", uzbek: "Yakshanba ⟸ Dushanba ⟸ ___", arabic: "الْأَحَدُ ⟸ الْإِثْنَيْنِ ⟸ ___", fullArabic: "الثُّلَاثَاءُ", blankWord: "الثُّلَاثَاءُ", choices: ["الثُّلَاثَاءُ", "الْأَرْبِعَاءُ", "الْجُمُعَةُ"], correct: "الثُّلَاثَاءُ" },
+          { type: "sentenceBuilder", uzbek: "Tartiblang: Chorshanba Payshanba Juma", arabic: "الْأَرْبِعَاءُ الْخَمِيسُ الْجُمُعَةُ", words: ["الْأَرْبِعَاءُ", "الْخَمِيسُ", "الْجُمُعَةُ", "كِتَابٌ"], distractors: ["كِتَابٌ"] }
+        ]
+      },
+      {
+        id: 'l8', title: "Bugun va Ertaga", titleAr: "الْيَوْمُ، الْغَدُ، الْأَمْسُ", icon: '⏳', xp: 20,
+        vocabulary: [
+          { arabic: "مَا الْيَوْمُ؟", uzbek: "Bugun qaysi kun?" },
+          { arabic: "الْيَوْمُ", uzbek: "Bugun" },
+          { arabic: "مَا الْغَدُ؟", uzbek: "Ertaga qaysi kun?" },
+          { arabic: "الْغَدُ", uzbek: "Ertaga" },
+          { arabic: "مَا الْأَمْسُ؟", uzbek: "Kecha qaysi kun edi?" },
+          { arabic: "الْأَمْسُ", uzbek: "Kecha" }
+        ],
+        questions: [
+          { type: "fillBlank", uzbek: "Agar bugun Yakshanba bo'lsa, ertaga qaysi kun?", arabic: "إِذَا كَانَ الْيَوْمُ الْأَحَدُ، فَمَا الْغَدُ؟ ___", fullArabic: "الْغَدُ الْإِثْنَيْنِ.", blankWord: "الْإِثْنَيْنِ", choices: ["الْإِثْنَيْنِ", "السَّبْتُ", "الثُّلَاثَاءُ"], correct: "الْإِثْنَيْنِ" },
+          { type: "sentenceBuilder", uzbek: "Agar bugun Shanba bo'lsa, kecha qaysi kun edi? Kecha Juma.", arabic: "مَا الْأَمْسُ؟ الْأَمْسُ الْجُمُعَةُ", words: ["مَا", "الْأَمْسُ؟", "الْأَمْسُ", "الْجُمُعَةُ", "كِتَابٌ", "مَدِينَةٌ"], distractors: ["كِتَابٌ", "مَدِينَةٌ"] },
+          { type: "matchPairs", pairs: [
+            { arabic: "الْيَوْمُ", uzbek: "Bugun" }, 
+            { arabic: "الْغَدُ", uzbek: "Ertaga" }, 
+            { arabic: "الْأَمْسُ", uzbek: "Kecha" },
+            { arabic: "مَا اسْمُكَ؟", uzbek: "Ismingiz nima? (m)" },
+            { arabic: "مِنْ أَيْنَ أَنْتِ؟", uzbek: "Qayerdansiz? (f)" }
+          ]},
+          { type: "listenSelect", arabic: "مَا الْأَمْسُ؟", uzbek: "Kecha qaysi kun edi?", options: ["Ertaga qaysi kun?", "Bugun qaysi kun?", "Kecha qaysi kun edi?", "Ismingiz nima?"], correct: "Kecha qaysi kun edi?" }
+        ]
+      }
+    ]
+  }
+];
 
-// --- التعديل الجوهري للـ TTS ---
+/* =========================================
+   PERSISTENCE & STATE
+========================================= */
+let progress = { totalXP: 0, streak: 0, completedLessons: [], unlockedLessons: ['l1'] };
+let state = { currentScreen: 'map', hearts: 5, currentLesson: null, qIndex: 0, queue: [], sessionXP: 0, wrongCount: 0, mistakes: [], isReviewMode: false, initialQCount: 0 };
+window._audioCtx = null;
+let audioUnlocked = false; // متغير جديد لمعرفة حالة قفل الصوت في أندرويد
+
+function showUserMessage(text) {
+  const toast = document.getElementById('user-message-toast');
+  toast.textContent = text;
+  toast.style.opacity = '1';
+  setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+}
+
+function loadProgress() {
+  try {
+    const data = localStorage.getItem('alTibyanProgressUz_v4');
+    if (data) progress = { ...progress, ...JSON.parse(data) };
+  } catch (e) { 
+    console.warn("Local storage disabled.");
+  }
+  updateTopBar();
+}
+
+function saveProgress() {
+  try { 
+    localStorage.setItem('alTibyanProgressUz_v4', JSON.stringify(progress)); 
+  } catch (e) {
+    console.warn("Cannot save progress.");
+  }
+  updateTopBar();
+}
+
+function updateTopBar() {
+  document.getElementById('total-xp').textContent = progress.totalXP;
+  document.getElementById('streak-count').textContent = progress.streak;
+}
+
+function resetProgress() {
+  if(confirm("Barcha yutuqlaringizni o'chirib tashlamoqchimisiz?")) {
+    progress = { totalXP: 0, streak: 0, completedLessons: [], unlockedLessons: ['l1'] };
+    saveProgress();
+    initMap();
+  }
+}
+
+/* =========================================
+   TRANSITIONS & APP LAYER
+========================================= */
+function showScreen(id) {
+  const current = document.querySelector('.screen.active');
+  const next = document.getElementById('screen-' + id);
+  if (!next || current === next) return;
+
+  if (current) {
+    current.classList.remove('active');
+    current.classList.add('slide-out-left');
+    setTimeout(() => { current.classList.remove('slide-out-left'); }, 250);
+  }
+  
+  next.classList.add('slide-in-right');
+  requestAnimationFrame(() => {
+    next.classList.add('active');
+    next.classList.remove('slide-in-right');
+  });
+  
+  state.currentScreen = id;
+  if(id === 'map') initMap();
+}
+
+/* =========================================
+   AUDIO & TTS - تم التعديل الجذري هنا لأندرويد
+========================================= */
+
+// دالة لفتح قفل محركات الصوت في متصفح الجوال (أندرويد يتطلب تفاعل المستخدم)
+function unlockAudio() {
+    if(audioUnlocked) return;
+    
+    // 1. فتح قفل المؤثرات الصوتية (Web Audio API)
+    if (!window._audioCtx) {
+        window._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (window._audioCtx.state === 'suspended') {
+        window._audioCtx.resume();
+    }
+
+    // 2. فتح قفل التحدث الصوتي (Speech Synthesis) بصوت صامت
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.getVoices(); // إجبار أندرويد على جلب الأصوات مبكراً
+        let msg = new SpeechSynthesisUtterance('');
+        msg.volume = 0; // صامت تماماً
+        window.speechSynthesis.speak(msg);
+    }
+
+    audioUnlocked = true;
+    
+    // إزالة الحدث لكي لا يعمل مع كل لمسة لتوفير الموارد
+    document.removeEventListener('touchstart', unlockAudio);
+    document.removeEventListener('click', unlockAudio);
+}
+
+// ربط فتح القفل بأول لمسة أو ضغطة للمستخدم
+document.addEventListener('touchstart', unlockAudio, {once:true});
+document.addEventListener('click', unlockAudio, {once:true});
+
+
+function initAudio() {
+  if (!window._audioCtx) {
+    try { window._audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } 
+    catch (e) { console.warn('AudioContext not supported'); }
+  }
+  if (window._audioCtx && window._audioCtx.state === 'suspended') window._audioCtx.resume();
+}
+
+function playTone(type, freq, duration, volStart) {
+  initAudio();
+  if (!window._audioCtx) return;
+  try {
+    const osc = window._audioCtx.createOscillator();
+    const gain = window._audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, window._audioCtx.currentTime);
+    if(type === 'sine' && duration === 0.15) osc.frequency.exponentialRampToValueAtTime(880, window._audioCtx.currentTime + duration);
+    gain.gain.setValueAtTime(volStart, window._audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, window._audioCtx.currentTime + duration);
+    osc.connect(gain); gain.connect(window._audioCtx.destination);
+    osc.start(); osc.stop(window._audioCtx.currentTime + duration);
+  } catch(e) {}
+}
+
+function playCorrect() { playTone('sine', 440, 0.15, 0.3); }
+function playWrong() { playTone('triangle', 200, 0.3, 0.4); }
+function playClick() { playTone('sine', 600, 0.05, 0.1); }
+function playLevelUp() {
+  setTimeout(() => playTone('sine', 523, 0.1, 0.3), 0);
+  setTimeout(() => playTone('sine', 659, 0.1, 0.3), 100);
+  setTimeout(() => playTone('sine', 784, 0.2, 0.3), 200);
+}
+
+// الدالة المحدثة للنطق التي تبحث صراحة عن الصوت العربي
 function speakArabic(text) {
   if (!('speechSynthesis' in window)) {
     showUserMessage("المتصفح لا يدعم النطق الصوتي.");
     return;
   }
+  
+  // إلغاء أي نطق معلق سابق
   window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'ar-SA';
-  utterance.rate = 0.9;
-  utterance.pitch = 1;
-  window.speechSynthesis.speak(utterance);
+  
+  const u = new SpeechSynthesisUtterance(text);
+  
+  // ضبط الخصائص لتلائم اللغة العربية
+  u.lang = 'ar-SA'; 
+  u.rate = 0.8; // أبطأ قليلاً للتعليم
+  u.pitch = 1.0;
+  u.volume = 1.0;
+
+  // البحث عن صوت عربي في نظام أندرويد لفرضه (لأن أندرويد أحياناً يتجاهل الخاصية lang)
+  const voices = window.speechSynthesis.getVoices();
+  const arabicVoice = voices.find(voice => voice.lang.includes('ar'));
+  if (arabicVoice) {
+      u.voice = arabicVoice;
+  }
+
+  // وضع حدث النهاية يمنع أندرويد من حذف الـ utterance من الذاكرة قبل انتهائه
+  u.onend = function() {
+      // تم الانتهاء بنجاح
+  };
+
+  window.speechSynthesis.speak(u);
 }
 
-// --- التعديل في عرض الكلمات في دالة openWelcome ---
-// ابحث عن الجزء الذي تنشئ فيه الـ vocab-card واستبدله بهذا النمط:
-/*
-  card.innerHTML = `
-    <div class="arabic-text" style="font-size:24px; flex:1;">${v.arabic}</div>
-    <div style="font-weight:700; text-align:left; margin-left:15px; font-size:15px;">${v.uzbek}</div>
-    <button style="cursor:pointer; font-size:24px; padding:5px; border:none; background:none;" onclick="speakArabic('${v.arabic}')">🔊</button>
-  `;
-*/
+/* =========================================
+   UI & GAMIFICATION
+========================================= */
+function initMap() {
+  const path = document.getElementById('lesson-path');
+  path.innerHTML = '';
+  
+  curriculum.forEach((unit, uIdx) => {
+    const divider = document.createElement('div');
+    divider.style.cssText = "background:var(--border); color:var(--text); padding:8px 16px; border-radius:16px; font-weight:800; margin:20px 0; text-transform:uppercase; font-size:14px; text-align:center;";
+    divider.textContent = `Qism ${uIdx+1} — ${unit.title}`;
+    path.appendChild(divider);
 
-// --- التفعيل التلقائي عند أول لمسة ---
-document.body.addEventListener('touchstart', function() {
-    initAudio();
-}, { once: true });
+    unit.lessons.forEach((lesson, lIdx) => {
+      const isCompleted = progress.completedLessons.includes(lesson.id);
+      const isUnlocked = progress.unlockedLessons.includes(lesson.id);
+      
+      const nodeCont = document.createElement('div');
+      nodeCont.className = 'node-container';
+      nodeCont.style.transform = `translateX(${lIdx % 2 === 0 ? '-30px' : '30px'})`;
 
-// ... باقي الكود ...
+      const node = document.createElement('div');
+      node.className = `node ${isCompleted ? 'completed' : (isUnlocked ? 'active-node' : 'locked')}`;
+      node.innerHTML = isCompleted ? '✅' : lesson.icon;
+      
+      node.onclick = () => { 
+          playClick(); 
+          if (!isUnlocked) {
+              const msg = "Siz hali bu darsga yetib kelmadingiz. Oldingi darslardagi so'zlar keyingilarida ishlatiladi.\n\nهل أنت متأكد من أنك حفظت الكلمات التي في الخلف؟ لأنها ستبنى على بعضها وإذا تخطيتها ستسبب لنفسك مشكلة.\n\nDavom etishni xohlaysizmi?";
+              if(confirm(msg)) openWelcome(lesson);
+          } else {
+              openWelcome(lesson);
+          }
+      };
+
+      const label = document.createElement('div');
+      label.className = 'node-label';
+      label.textContent = lesson.title;
+
+      nodeCont.appendChild(node);
+      nodeCont.appendChild(label);
+      path.appendChild(nodeCont);
+    });
+  });
+}
+
+function openWelcome(lesson) {
+  state.currentLesson = lesson;
+  document.getElementById('welcome-icon').textContent = lesson.icon;
+  document.getElementById('welcome-title').textContent = lesson.title;
+  document.getElementById('welcome-title-ar').textContent = curriculum.find(u => u.lessons.includes(lesson)).titleAr;
+  document.getElementById('word-count').textContent = lesson.vocabulary.length; 
+  
+  const vocabDiv = document.getElementById('vocab-preview');
+  vocabDiv.innerHTML = '';
+  lesson.vocabulary.forEach(v => {
+    const card = document.createElement('div');
+    card.className = 'vocab-card';
+    card.innerHTML = `
+      <div class="arabic-text" style="font-size:24px; flex:1;">${v.arabic}</div>
+      <div style="font-weight:700; text-align:left; margin-left:15px; font-size:15px;">${v.uzbek}</div>
+      <div style="cursor:pointer; font-size:24px; padding:5px;" onclick="speakArabic('${v.arabic}')">🔊</div>
+    `;
+    vocabDiv.appendChild(card);
+  });
+  
+  showScreen('welcome');
+}
+
+function startLesson() {
+  initAudio();
+  state.hearts = 5;
+  state.qIndex = 0;
+  state.sessionXP = 0;
+  state.wrongCount = 0;
+  state.mistakes = [];
+  state.isReviewMode = false;
+  state.initialQCount = state.currentLesson.questions.length;
+  state.queue = [...state.currentLesson.questions];
+
+  updateHearts();
+  showScreen('exercise');
+  renderQuestion();
+}
+
+function startMistakesReview() {
+  initAudio();
+  state.queue = [...state.mistakes];
+  state.mistakes = [];
+  state.isReviewMode = true;
+  state.qIndex = 0;
+  
+  showScreen('exercise');
+  renderQuestion();
+}
+
+function updateHearts() {
+  const hd = document.getElementById('hearts-display');
+  hd.innerHTML = '❤️'.repeat(state.hearts) + '🤍'.repeat(5 - state.hearts);
+}
+
+function updateProgress() {
+  const total = state.queue.length + state.qIndex; 
+  const done = state.qIndex;
+  const pct = Math.min(100, (done / total) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+
+let activeAnswerData = null;
+
+function renderQuestion() {
+  if (state.queue.length === 0) return handleQueueEnd();
+  
+  updateProgress();
+  document.getElementById('feedback-sheet').classList.remove('show');
+  
+  const checkBtn = document.getElementById('check-btn');
+  checkBtn.style.display = 'block';
+  checkBtn.className = 'btn btn-primary';
+  checkBtn.textContent = 'TEKSHIRISH';
+  checkBtn.disabled = true;
+  
+  const content = document.getElementById('exercise-content');
+  content.innerHTML = '';
+  
+  if (state.isReviewMode) {
+      const badge = document.createElement('div');
+      badge.className = 'review-badge';
+      badge.textContent = '🛠️ Xatoni to\'g\'rilash (مراجعة الأخطاء)';
+      content.appendChild(badge);
+  }
+
+  activeAnswerData = null;
+  const q = state.queue[0];
+  
+  if (q.type === 'sentenceBuilder') renderTypeA(q, content);
+  else if (q.type === 'matchPairs') renderTypeB(q, content);
+  else if (q.type === 'listenSelect') renderTypeC(q, content);
+  else if (q.type === 'fillBlank') renderTypeD(q, content);
+  else if (q.type === 'letterGrid') renderTypeE(q, content);
+  else if (q.type === 'wordSearch') renderWordSearch(q, content);
+}
+
+/* =========================================
+   TEXT NORMALIZATION
+========================================= */
+function removeTashkeelAndPunctuation(text) {
+    if (!text) return "";
+    return text
+        .replace(/[\u0617-\u061A\u064B-\u065F\u06D6-\u06ED]/g, '') 
+        .replace(/\u0640/g, '') 
+        .replace(/[.,،؛؟!:"'()\[\]{}«»]/g, '') 
+        .replace(/\s+/g, ' ') 
+        .trim()
+        .replace(/[أإآ]/g, 'ا') 
+        .replace(/ى/g, 'ي')
+        .replace(/ة/g, 'ه'); 
+}
+
+function isAnswerCorrect(userAns, targetAns) {
+    return removeTashkeelAndPunctuation(userAns) === removeTashkeelAndPunctuation(targetAns);
+}
+
+/* =========================================
+   EXERCISE TYPES
+========================================= */
+
+// Type A: Sentence Builder
+function renderTypeA(q, container) {
+  const inst = document.createElement('div');
+  inst.className = 'instruction';
+  inst.textContent = q.uzbek;
+  container.appendChild(inst);
+  
+  const dropZone = document.createElement('div');
+  dropZone.className = 'drop-zone';
+  const wordBank = document.createElement('div');
+  wordBank.className = 'word-bank';
+  
+  let currentSentence = [];
+  
+  const updateCheckBtn = () => {
+    document.getElementById('check-btn').disabled = currentSentence.length === 0;
+    activeAnswerData = currentSentence.map(btn => btn.dataset.word).join(' '); 
+  };
+
+  const words = [...q.words].sort(() => Math.random() - 0.5);
+  words.forEach(w => {
+    const btn = document.createElement('button');
+    btn.className = 'word-btn arabic-text';
+    btn.textContent = w;
+    btn.dataset.word = w;
+    
+    btn.onclick = () => {
+      playClick();
+      if (btn.parentElement === wordBank) dropZone.appendChild(btn);
+      else wordBank.appendChild(btn);
+      
+      currentSentence = Array.from(dropZone.children);
+      updateCheckBtn();
+    };
+    wordBank.appendChild(btn);
+  });
+  
+  container.appendChild(dropZone);
+  container.appendChild(wordBank);
+}
+
+// Type B: Match Pairs
+function renderTypeB(q, container) {
+  const inst = document.createElement('div');
+  inst.className = 'instruction';
+  inst.textContent = "Mos keladigan juftlikni toping";
+  container.appendChild(inst);
+
+  document.getElementById('check-btn').style.display = 'none';
+  
+  const grid = document.createElement('div');
+  grid.className = 'match-grid';
+  
+  let arList = q.pairs.map(p => ({t: p.arabic, type: 'ar'})).sort(() => Math.random() - 0.5);
+  let uzList = q.pairs.map(p => ({t: p.uzbek, type: 'uz'})).sort(() => Math.random() - 0.5);
+  
+  let selAr = null, selUz = null;
+  let matches = 0;
+
+  const checkMatch = () => {
+    if(!selAr || !selUz) return;
+    const pair = q.pairs.find(p => p.arabic === selAr.dataset.val && p.uzbek === selUz.dataset.val);
+    
+    if (pair) {
+      playCorrect();
+      selAr.classList.add('matched'); selUz.classList.add('matched');
+      matches++;
+      if(matches === q.pairs.length) {
+        activeAnswerData = true;
+        handleAnswer(true);
+      }
+    } else {
+      playWrong();
+      if(state.hearts > 0) state.hearts--;
+      updateHearts();
+      selAr.style.borderColor = 'var(--danger)'; selUz.style.borderColor = 'var(--danger)';
+      
+      if (!state.isReviewMode && !state.mistakes.includes(q)) state.mistakes.push(q);
+      else if (state.isReviewMode) state.queue.push(q);
+      
+      setTimeout(() => {
+        if(selAr) { selAr.style.borderColor = ''; selAr.classList.remove('active'); }
+        if(selUz) { selUz.style.borderColor = ''; selUz.classList.remove('active'); }
+        selAr = null; selUz = null;
+      }, 600);
+      return;
+    }
+    selAr = null; selUz = null;
+  };
+
+  const createBtn = (item) => {
+    const b = document.createElement('button');
+    b.className = 'match-btn ' + (item.type === 'ar' ? 'arabic-text' : '');
+    if(item.type === 'ar') b.style.fontSize = '20px';
+    b.textContent = item.t;
+    b.dataset.val = item.t;
+    b.onclick = () => {
+      playClick();
+      if(item.type === 'ar') {
+        if(selAr) selAr.classList.remove('active');
+        selAr = b;
+      } else {
+        if(selUz) selUz.classList.remove('active');
+        selUz = b;
+      }
+      b.classList.add('active');
+      checkMatch();
+    };
+    return b;
+  };
+
+  for(let i=0; i<q.pairs.length; i++) {
+    grid.appendChild(createBtn(arList[i]));
+    grid.appendChild(createBtn(uzList[i]));
+  }
+  container.appendChild(grid);
+}
+
+// Type C: Listen & Select
+function renderTypeC(q, container) {
+  const inst = document.createElement('div');
+  inst.className = 'instruction';
+  inst.textContent = "اضغط على 🔊 لسماع الجملة، ثم اختر الترجمة الصحيحة";
+  container.appendChild(inst);
+  
+  document.getElementById('check-btn').style.display = 'none';
+  
+  const speaker = document.createElement('div');
+  speaker.className = 'speaker-btn';
+  speaker.innerHTML = '🔊';
+  speaker.onclick = () => {
+      playClick();
+      speakArabic(q.arabic);
+  };
+  container.appendChild(speaker);
+  
+  const grid = document.createElement('div');
+  grid.className = 'options-grid';
+  
+  q.options.sort(() => Math.random() - 0.5).forEach(opt => {
+    const b = document.createElement('button');
+    b.className = 'option-btn';
+    b.textContent = opt;
+    b.onclick = () => {
+      playClick();
+      activeAnswerData = opt;
+      handleAnswer(opt === q.correct);
+    };
+    grid.appendChild(b);
+  });
+  container.appendChild(grid);
+}
+
+// Type D: Fill in the Blank
+function renderTypeD(q, container) {
+  const inst = document.createElement('div');
+  inst.className = 'instruction';
+  inst.textContent = q.uzbek;
+  container.appendChild(inst);
+  
+  const sentence = document.createElement('div');
+  sentence.className = 'arabic-text text-center mb-2';
+  sentence.style.fontSize = '32px';
+  sentence.innerHTML = q.arabic.replace('___', '<span style="border-bottom:2px dashed var(--border); display:inline-block; width:60px; height: 30px; vertical-align: bottom;"></span>');
+  container.appendChild(sentence);
+
+  const grid = document.createElement('div');
+  grid.className = 'options-grid';
+  
+  q.choices.sort(() => Math.random() - 0.5).forEach(opt => {
+    const b = document.createElement('button');
+    b.className = 'option-btn arabic-text';
+    b.textContent = opt;
+    b.onclick = () => {
+      playClick();
+      document.querySelectorAll('.option-btn').forEach(btn=>btn.classList.remove('selected'));
+      b.classList.add('selected');
+      activeAnswerData = opt;
+      document.getElementById('check-btn').disabled = false;
+    };
+    grid.appendChild(b);
+  });
+  container.appendChild(grid);
+}
+
+// Type E: Letter Grid
+function renderTypeE(q, container) {
+  const inst = document.createElement('div');
+  inst.className = 'instruction';
+  inst.textContent = "So'zni yig'ing (Harflarni bosing): " + q.uzbek;
+  container.appendChild(inst);
+  
+  const answerBox = document.createElement('div');
+  answerBox.className = 'letter-answer-box arabic-text';
+  container.appendChild(answerBox);
+
+  const grid = document.createElement('div');
+  grid.className = 'letter-grid-container';
+  
+  let selectedLetters = [];
+
+  const updateAnswerDisplay = () => {
+    answerBox.innerHTML = '';
+    selectedLetters.forEach((item, idx) => {
+      const span = document.createElement('span');
+      span.className = 'letter-answer-item';
+      span.textContent = item.letter;
+      span.onclick = () => {
+        playClick();
+        item.btn.classList.remove('used');
+        selectedLetters.splice(idx, 1);
+        updateAnswerDisplay();
+      };
+      answerBox.appendChild(span);
+    });
+    activeAnswerData = selectedLetters.map(i => i.letter).join('');
+    document.getElementById('check-btn').disabled = selectedLetters.length === 0;
+  };
+
+  const letters = [...q.letters].sort(() => Math.random() - 0.5);
+  letters.forEach(l => {
+    const btn = document.createElement('button');
+    btn.className = 'letter-btn arabic-text';
+    btn.textContent = l;
+    btn.onclick = () => {
+      playClick();
+      btn.classList.add('used');
+      selectedLetters.push({ letter: l, btn: btn });
+      updateAnswerDisplay();
+    };
+    grid.appendChild(btn);
+  });
+  
+  container.appendChild(grid);
+}
+
+// Type F: Word Search
+function renderWordSearch(q, container) {
+  const inst = document.createElement('div');
+  inst.className = 'instruction';
+  inst.textContent = q.instruction;
+  container.appendChild(inst);
+
+  document.getElementById('check-btn').style.display = 'none';
+
+  const clues = document.createElement('div');
+  clues.style.display = 'flex';
+  clues.style.flexWrap = 'wrap';
+  clues.style.gap = '10px';
+  clues.style.justifyContent = 'center';
+
+  q.wordsToFind.forEach(w => {
+      w.found = false;
+      const badge = document.createElement('div');
+      badge.id = 'clue-' + w.arabic;
+      badge.className = 'word-btn';
+      badge.style.fontSize = '16px';
+      badge.style.padding = '8px 12px';
+      badge.textContent = w.uzbek;
+      clues.appendChild(badge);
+  });
+
+  const gridBox = document.createElement('div');
+  const cols = q.grid[0].length;
+  const rows = q.grid.length;
+  gridBox.style.display = 'grid';
+  gridBox.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  gridBox.style.gap = '5px';
+  gridBox.style.direction = 'rtl';
+  gridBox.style.maxWidth = '320px';
+  gridBox.style.margin = '0 auto';
+
+  let cells = [];
+  for(let r=0; r<rows; r++) {
+      cells[r] = [];
+      for(let c=0; c<cols; c++) {
+          const cell = document.createElement('button');
+          cell.className = 'letter-btn arabic-text';
+          cell.style.padding = '10px 5px';
+          cell.textContent = q.grid[r][c];
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          cells[r][c] = cell;
+          gridBox.appendChild(cell);
+      }
+  }
+
+  let currentPath = [];
+  let foundCount = 0;
+
+  const clearSelection = () => {
+      currentPath.forEach(p => {
+          if(!p.element.classList.contains('found')) {
+              p.element.classList.remove('selected');
+              p.element.style.transform = 'scale(1)';
+          }
+      });
+      currentPath = [];
+  };
+
+  const isStraightLine = (path) => {
+      if(path.length < 2) return true;
+      const dr = path[1].row - path[0].row;
+      const dc = path[1].col - path[0].col;
+      for(let i=2; i<path.length; i++) {
+          if((path[i].row - path[i-1].row) !== dr || (path[i].col - path[i-1].col) !== dc) return false;
+      }
+      return true;
+  };
+
+  const getWordFromPath = (path) => path.map(p => q.grid[p.row][p.col]).join('');
+
+  cells.forEach(row => {
+      row.forEach(cell => {
+          cell.onclick = () => {
+              playClick();
+              if(cell.classList.contains('found')) return;
+
+              const r = parseInt(cell.dataset.row);
+              const c = parseInt(cell.dataset.col);
+
+              const existingIndex = currentPath.findIndex(p => p.row === r && p.col === c);
+              if(existingIndex >= 0) {
+                  for(let i = currentPath.length - 1; i >= existingIndex; i--) {
+                      currentPath[i].element.classList.remove('selected');
+                      currentPath[i].element.style.transform = 'scale(1)';
+                      currentPath.pop();
+                  }
+                  return;
+              }
+
+              if(currentPath.length > 0) {
+                  const last = currentPath[currentPath.length - 1];
+                  const dr = Math.abs(last.row - r);
+                  const dc = Math.abs(last.col - c);
+                  if(dr > 1 || dc > 1 || (dr === 0 && dc === 0)) {
+                      clearSelection();
+                      return;
+                  }
+              }
+
+              cell.classList.add('selected');
+              cell.style.transform = 'scale(0.9)';
+              currentPath.push({row: r, col: c, element: cell});
+
+              if(currentPath.length < 2) return;
+
+              if(!isStraightLine(currentPath)) {
+                  clearSelection();
+                  return;
+              }
+
+              const word = getWordFromPath(currentPath);
+              const reversed = word.split('').reverse().join('');
+
+              const match = q.wordsToFind.find(w => !w.found && (w.arabic === word || w.arabic === reversed));
+
+              if(match) {
+                  playCorrect();
+                  match.found = true;
+                  foundCount++;
+                  currentPath.forEach(p => {
+                      p.element.classList.remove('selected');
+                      p.element.classList.add('found');
+                      p.element.style.backgroundColor = 'var(--success)';
+                      p.element.style.color = 'white';
+                      p.element.style.borderColor = 'var(--success-dark)';
+                      p.element.style.transform = 'scale(1)';
+                  });
+                  currentPath = [];
+
+                  const clueEl = document.getElementById('clue-' + match.arabic);
+                  clueEl.style.textDecoration = 'line-through';
+                  clueEl.style.backgroundColor = '#E1F5FE';
+                  clueEl.style.color = 'var(--success-dark)';
+
+                  if(foundCount === q.wordsToFind.length) {
+                      activeAnswerData = true;
+                      const cBtn = document.getElementById('check-btn');
+                      cBtn.disabled = false;
+                      cBtn.style.display = 'block';
+                      cBtn.textContent = 'DAVOM ETISH';
+                  }
+              } else if (currentPath.length > 6) {
+                  clearSelection();
+              }
+          };
+      });
+  });
+
+  const clearBtn = document.createElement('button');
+  clearBtn.className = 'btn';
+  clearBtn.style.backgroundColor = '#E5E5E5';
+  clearBtn.style.color = '#4B4B4B';
+  clearBtn.style.boxShadow = '0 4px 0 #CCC';
+  clearBtn.style.marginTop = '10px';
+  clearBtn.style.fontSize = '16px';
+  clearBtn.textContent = '🧹 Tanlovni tozalash';
+  clearBtn.onclick = () => { playClick(); clearSelection(); };
+
+  container.appendChild(clues);
+  container.appendChild(gridBox);
+  container.appendChild(clearBtn);
+}
+
+/* =========================================
+   ANSWER HANDLING & FEEDBACK
+========================================= */
+function checkAnswer() {
+  const q = state.queue[0];
+  let isCorrect = false;
+  
+  if(q.type === 'sentenceBuilder') isCorrect = isAnswerCorrect(activeAnswerData, q.arabic);
+  else if(q.type === 'fillBlank') isCorrect = isAnswerCorrect(activeAnswerData, q.correct);
+  else if(q.type === 'letterGrid') isCorrect = isAnswerCorrect(activeAnswerData, q.arabic);
+  else if(q.type === 'wordSearch') isCorrect = true;
+  
+  handleAnswer(isCorrect);
+}
+
+function handleAnswer(isCorrect) {
+  const q = state.queue[0];
+  const sheet = document.getElementById('feedback-sheet');
+  const msg = document.getElementById('feedback-msg');
+  const emoji = document.getElementById('feedback-emoji');
+  const btn = document.getElementById('feedback-btn');
+  const arDiv = document.getElementById('feedback-correct-answer');
+  
+  document.getElementById('check-btn').style.display = 'none';
+  
+  if (isCorrect) {
+    playCorrect();
+    state.sessionXP += 10;
+    sheet.className = 'feedback-sheet show correct';
+    msg.textContent = "To'g'ri, barakalla!";
+    emoji.textContent = "✅";
+    arDiv.style.display = 'none';
+    btn.className = 'btn btn-success';
+  } else {
+    playWrong();
+    if(state.hearts > 0) state.hearts--;
+    state.wrongCount++;
+    updateHearts();
+    
+    if (state.isReviewMode) state.queue.push(q);
+    else if (!state.mistakes.includes(q)) state.mistakes.push(q);
+    
+    sheet.className = 'feedback-sheet show wrong';
+    msg.textContent = "Xato, lekin o'rganishda davom etamiz!";
+    emoji.textContent = "💪"; 
+    
+    arDiv.style.display = 'block';
+    arDiv.textContent = q.fullArabic || q.arabic || q.correct || "";
+    btn.className = 'btn btn-danger';
+  }
+}
+
+function nextQuestion() {
+  state.queue.shift(); 
+  state.qIndex++;
+  renderQuestion(); 
+}
+
+function handleQueueEnd() {
+    if (state.mistakes.length > 0) showScreen('mistakes-intro');
+    else completeLesson();
+}
+
+function completeLesson() {
+  playLevelUp();
+  state.sessionXP += (state.hearts * 5); 
+  progress.totalXP += state.sessionXP;
+  
+  if (!progress.completedLessons.includes(state.currentLesson.id)) {
+    progress.completedLessons.push(state.currentLesson.id);
+  }
+  
+  let foundCurrent = false;
+  let nextUnlocked = false;
+  curriculum.forEach(u => u.lessons.forEach(l => {
+    if(foundCurrent && !nextUnlocked) {
+      if(!progress.unlockedLessons.includes(l.id)) progress.unlockedLessons.push(l.id);
+      nextUnlocked = true;
+    }
+    if(l.id === state.currentLesson.id) foundCurrent = true;
+  }));
+  
+  progress.streak++; 
+  saveProgress();
+  
+  document.getElementById('earned-xp').textContent = state.sessionXP;
+  document.getElementById('result-wrong').textContent = state.wrongCount;
+  
+  let accuracy = Math.round(((state.initialQCount - state.wrongCount) / state.initialQCount) * 100);
+  if(accuracy < 0) accuracy = 0;
+  document.getElementById('result-accuracy').textContent = accuracy;
+
+  const msg = document.getElementById('completion-msg');
+  const emj = document.getElementById('completion-emoji');
+  
+  if (state.wrongCount === 0 && !state.isReviewMode) {
+      msg.textContent = "Mukammal! Siz hech qanday xato qilmadingiz!"; 
+      emj.textContent = "🏆";
+  } else {
+      msg.textContent = "Juda yaxshi! Xatolarni ustida ishlash orqali siz yanada kuchli bo'ldingiz!"; 
+      emj.textContent = "🌟";
+  }
+  
+  showScreen('lesson-complete');
+}
+
+function finishLesson() {
+  showScreen('map');
+}
+
+/* =========================================
+   INIT & PWA REGISTRATION
+========================================= */
+window.onload = () => {
+  loadProgress();
+  initMap();
+
+  const manifest = {
+    name: "Al-Tibyan",
+    short_name: "Tibyan",
+    start_url: ".",
+    display: "standalone",
+    background_color: "#F7F7F7",
+    theme_color: "#1CB0F6",
+    icons: [{
+      src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231CB0F6'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' fill='white'%3E%D8%AA%3C/text%3E%3C/svg%3E",
+      sizes: "512x512",
+      type: "image/svg+xml",
+      purpose: "any maskable"
+    }]
+  };
+  const stringManifest = JSON.stringify(manifest);
+  const blob = new Blob([stringManifest], {type: 'application/json'});
+  const manifestURL = URL.createObjectURL(blob);
+  const link = document.createElement('link');
+  link.rel = 'manifest';
+  link.href = manifestURL;
+  document.head.appendChild(link);
+};
 </script>
 </body>
 </html>
