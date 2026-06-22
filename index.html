@@ -1,3 +1,6 @@
+إليك الكود كاملاً بعد دمج التعديلات الخاصة بإصلاح مشكلة الصوت على أجهزة أندرويد وإدارة الذاكرة. يمكنك نسخه ولصقه مباشرة:
+
+```html
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -558,6 +561,7 @@ const curriculum = [
 let progress = { totalXP: 0, streak: 0, completedLessons: [], unlockedLessons: ['l1'] };
 let state = { currentScreen: 'map', hearts: 5, currentLesson: null, qIndex: 0, queue: [], sessionXP: 0, wrongCount: 0, mistakes: [], isReviewMode: false, initialQCount: 0 };
 window._audioCtx = null;
+window.activeUtterance = null; // متغير عام لمنع حذف الصوت من الذاكرة
 
 function showUserMessage(text) {
   const toast = document.getElementById('user-message-toast');
@@ -666,10 +670,28 @@ function speakArabic(text) {
     showUserMessage("المتصفح لا يدعم النطق الصوتي.");
     return;
   }
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'ar-SA'; u.rate = 0.85; u.pitch = 1.0;
-  window.speechSynthesis.speak(u);
+
+  // إيقاف الصوت الحالي فقط إذا كان هناك صوت يعمل بالفعل
+  if (window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
+  }
+
+  // استخدام مهلة زمنية قصيرة جداً لحل مشكلة التعارض في أندرويد
+  setTimeout(() => {
+    window.activeUtterance = new SpeechSynthesisUtterance(text);
+    window.activeUtterance.lang = 'ar-SA'; 
+    window.activeUtterance.rate = 0.85; 
+    window.activeUtterance.pitch = 1.0;
+
+    // محاولة جلب الأصوات المتاحة في جهاز الأندرويد واختيار الصوت العربي إن وجد
+    const voices = window.speechSynthesis.getVoices();
+    const arabicVoice = voices.find(v => v.lang.startsWith('ar'));
+    if (arabicVoice) {
+      window.activeUtterance.voice = arabicVoice;
+    }
+
+    window.speechSynthesis.speak(window.activeUtterance);
+  }, 50);
 }
 
 /* =========================================
@@ -1358,6 +1380,12 @@ function finishLesson() {
 /* =========================================
    INIT & PWA REGISTRATION
 ========================================= */
+
+// تفعيل قناة الصوت مع أول لمسة للشاشة من المستخدم (مهم جداً لأندرويد)
+document.body.addEventListener('touchstart', function() {
+    initAudio();
+}, { once: true });
+
 window.onload = () => {
   loadProgress();
   initMap();
@@ -1387,3 +1415,5 @@ window.onload = () => {
 </script>
 </body>
 </html>
+
+```
