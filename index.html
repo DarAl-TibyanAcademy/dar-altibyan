@@ -199,9 +199,19 @@
 
     /* Mistakes Review Modal */
     #screen-mistakes-intro { justify-content: center; align-items: center; padding: 30px; text-align: center; background: #FFF9C4; }
+
+    /* User Message Toast */
+    #user-message-toast {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      background: var(--warning); color: white; padding: 10px 20px;
+      border-radius: 0 0 10px 10px; font-weight: bold; z-index: 1000;
+      opacity: 0; transition: opacity 0.3s;
+    }
   </style>
 </head>
 <body>
+
+<div id="user-message-toast"></div>
 
 <div id="app-container">
 
@@ -549,16 +559,34 @@ let progress = { totalXP: 0, streak: 0, completedLessons: [], unlockedLessons: [
 let state = { currentScreen: 'map', hearts: 5, currentLesson: null, qIndex: 0, queue: [], sessionXP: 0, wrongCount: 0, mistakes: [], isReviewMode: false, initialQCount: 0 };
 window._audioCtx = null;
 
+// دالة لإظهار رسالة للمستخدم
+function showUserMessage(text) {
+  const toast = document.getElementById('user-message-toast');
+  toast.textContent = text;
+  toast.style.opacity = '1';
+  setTimeout(() => {
+    toast.style.opacity = '0';
+  }, 3000);
+}
+
 function loadProgress() {
   try {
     const data = localStorage.getItem('alTibyanProgressUz_v4');
     if (data) progress = { ...progress, ...JSON.parse(data) };
-  } catch (e) { console.warn("Local storage disabled."); }
+  } catch (e) { 
+    console.warn("Local storage disabled.");
+    showUserMessage("ملاحظة: لن يتم حفظ تقدمك في هذا المتصفح.");
+  }
   updateTopBar();
 }
 
 function saveProgress() {
-  try { localStorage.setItem('alTibyanProgressUz_v4', JSON.stringify(progress)); } catch (e) {}
+  try { 
+    localStorage.setItem('alTibyanProgressUz_v4', JSON.stringify(progress)); 
+  } catch (e) {
+    console.warn("Cannot save progress. Private mode?");
+    showUserMessage("ملاحظة: لن يتم حفظ تقدمك في هذا المتصفح.");
+  }
   updateTopBar();
 }
 
@@ -579,7 +607,7 @@ function resetProgress() {
    TRANSITIONS & APP LAYER
 ========================================= */
 function showScreen(id) {
-  initAudio();
+  // سيتم تهيئة الصوت عند أول تفاعل
   const current = document.querySelector('.screen.active');
   const next = document.getElementById('screen-' + id);
   if (!next || current === next) return;
@@ -604,14 +632,21 @@ function showScreen(id) {
    AUDIO & TTS
 ========================================= */
 function initAudio() {
+  // سيتم استدعاء هذه الدالة عند أول تفاعل من المستخدم
   if (!window._audioCtx) {
-    try { window._audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } 
-    catch (e) { console.warn('AudioContext not supported'); }
+    try { 
+      window._audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+    } catch (e) { 
+      console.warn('AudioContext not supported'); 
+    }
   }
-  if (window._audioCtx && window._audioCtx.state === 'suspended') window._audioCtx.resume();
+  if (window._audioCtx && window._audioCtx.state === 'suspended') {
+    window._audioCtx.resume();
+  }
 }
 
 function playTone(type, freq, duration, volStart) {
+  initAudio(); // تأكد من تهيئة السياق
   if (!window._audioCtx) return;
   try {
     const osc = window._audioCtx.createOscillator();
@@ -636,7 +671,11 @@ function playLevelUp() {
 }
 
 function speakArabic(text) {
-  if (!('speechSynthesis' in window)) return;
+  initAudio(); // لتفعيل السياق إذا لزم الأمر
+  if (!('speechSynthesis' in window)) {
+    showUserMessage("المتصفح لا يدعم النطق الصوتي.");
+    return;
+  }
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'ar-SA'; u.rate = 0.85; u.pitch = 1.0;
@@ -670,6 +709,7 @@ function initMap() {
       
       node.onclick = () => { 
           playClick(); 
+          initAudio(); // تهيئة الصوت عند أول تفاعل
           if (!isUnlocked) {
               const msg = "Siz hali bu darsga yetib kelmadingiz. Oldingi darslardagi so'zlar keyingilarida ishlatiladi.\n\nهل أنت متأكد من أنك حفظت الكلمات التي في الخلف؟ لأنها ستبنى على بعضها وإذا تخطيتها ستسبب لنفسك مشكلة.\n\nDavom etishni xohlaysizmi?";
               if(confirm(msg)) {
@@ -715,6 +755,7 @@ function openWelcome(lesson) {
 }
 
 function startLesson() {
+  initAudio(); // تهيئة عند بدء الدرس
   state.hearts = 5;
   state.qIndex = 0;
   state.sessionXP = 0;
@@ -730,6 +771,7 @@ function startLesson() {
 }
 
 function startMistakesReview() {
+  initAudio();
   state.queue = [...state.mistakes];
   state.mistakes = [];
   state.isReviewMode = true;
@@ -793,10 +835,13 @@ function renderQuestion() {
 function removeTashkeelAndPunctuation(text) {
     if (!text) return "";
     return text
-        .replace(/[\u0617-\u061A\u064B-\u0652\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]/g, '')
-        .replace(/[.,،؛؟!"']/g, '')
-        .replace(/\s+/g, '')
-        .replace(/[أإآ]/g, 'ا');
+        .replace(/[\u0617-\u061A\u064B-\u065F\u06D6-\u06ED]/g, '') // يزيل كل التشكيل والتنوين
+        .replace(/[.,،؛؟!:"'()\[\]{}«»]/g, '') // يزيل علامات الترقيم
+        .replace(/\s+/g, ' ') // يحافظ على مسافة واحدة بين الكلمات
+        .trim()
+        .replace(/[أإآ]/g, 'ا') // توحيد الألف
+        .replace(/ى/g, 'ي'); // توحيد الياء الممدودة
+        // .replace(/ة/g, 'ه'); // يمكنك إلغاء التعليق إذا أردت توحيد التاء المربوطة
 }
 
 function isAnswerCorrect(userAns, targetAns) {
@@ -823,7 +868,7 @@ function renderTypeA(q, container) {
   
   const updateCheckBtn = () => {
     document.getElementById('check-btn').disabled = currentSentence.length === 0;
-    activeAnswerData = currentSentence.map(btn => btn.dataset.word).join(''); 
+    activeAnswerData = currentSentence.map(btn => btn.dataset.word).join(' '); 
   };
 
   const words = [...q.words].sort(() => Math.random() - 0.5);
@@ -930,11 +975,11 @@ function renderTypeB(q, container) {
   container.appendChild(grid);
 }
 
-// Type C: Listen & Select
+// Type C: Listen & Select — تم التعديل
 function renderTypeC(q, container) {
   const inst = document.createElement('div');
   inst.className = 'instruction';
-  inst.textContent = "Tinglang va to'g'ri so'zni tanlang";
+  inst.textContent = "اضغط على 🔊 لسماع الجملة، ثم اختر الترجمة الصحيحة";
   container.appendChild(inst);
   
   document.getElementById('check-btn').style.display = 'none';
@@ -942,7 +987,10 @@ function renderTypeC(q, container) {
   const speaker = document.createElement('div');
   speaker.className = 'speaker-btn';
   speaker.innerHTML = '🔊';
-  speaker.onclick = () => speakArabic(q.arabic);
+  speaker.onclick = () => {
+      playClick();
+      speakArabic(q.arabic); // الآن يبدأ فقط بعد النقر
+  };
   container.appendChild(speaker);
   
   const grid = document.createElement('div');
@@ -961,7 +1009,7 @@ function renderTypeC(q, container) {
   });
   container.appendChild(grid);
   
-  setTimeout(() => speakArabic(q.arabic), 300);
+  // ❌ تم إزالة التشغيل التلقائي
 }
 
 // Type D: Fill in the Blank
@@ -1047,7 +1095,7 @@ function renderTypeE(q, container) {
   container.appendChild(grid);
 }
 
-// (NEW) Type F: Word Search (الكلمات المتقاطعة)
+// (NEW) Type F: Word Search — معدّل بالكامل
 function renderWordSearch(q, container) {
   const inst = document.createElement('div');
   inst.className = 'instruction';
@@ -1056,12 +1104,6 @@ function renderWordSearch(q, container) {
 
   document.getElementById('check-btn').style.display = 'none';
 
-  const splitView = document.createElement('div');
-  splitView.style.display = 'flex';
-  splitView.style.flexDirection = 'column';
-  splitView.style.gap = '20px';
-
-  // كلمات الأوزبكي للعثور عليها
   const clues = document.createElement('div');
   clues.style.display = 'flex';
   clues.style.flexWrap = 'wrap';
@@ -1078,75 +1120,129 @@ function renderWordSearch(q, container) {
       badge.textContent = w.uzbek;
       clues.appendChild(badge);
   });
-  splitView.appendChild(clues);
 
-  // شبكة الحروف
   const gridBox = document.createElement('div');
+  const cols = q.grid[0].length;
+  const rows = q.grid.length;
   gridBox.style.display = 'grid';
-  gridBox.style.gridTemplateColumns = `repeat(${q.grid[0].length}, 1fr)`;
+  gridBox.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   gridBox.style.gap = '5px';
-  gridBox.style.direction = 'rtl'; // لدعم القراءة من اليمين لليسار
+  gridBox.style.direction = 'rtl';
   gridBox.style.maxWidth = '320px';
   gridBox.style.margin = '0 auto';
 
-  let currentSelection = [];
-  let foundCount = 0;
-
-  const clearSelection = () => {
-      currentSelection.forEach(c => {
-        if(!c.classList.contains('found')) c.classList.remove('selected');
-        c.style.transform = 'scale(1)';
-      });
-      currentSelection = [];
-  };
-
-  for(let r=0; r<q.grid.length; r++) {
-      for(let c=0; c<q.grid[r].length; c++) {
+  // تخزين خلايا الشبكة بموضعها
+  let cells = [];
+  for(let r=0; r<rows; r++) {
+      cells[r] = [];
+      for(let c=0; c<cols; c++) {
           const cell = document.createElement('button');
           cell.className = 'letter-btn arabic-text';
           cell.style.padding = '10px 5px';
           cell.textContent = q.grid[r][c];
-          cell.dataset.letter = q.grid[r][c];
-          
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          cells[r][c] = cell;
+          gridBox.appendChild(cell);
+      }
+  }
+
+  let currentPath = []; // [{row, col, element}]
+  let foundCount = 0;
+
+  const clearSelection = () => {
+      currentPath.forEach(p => {
+          if(!p.element.classList.contains('found')) {
+              p.element.classList.remove('selected');
+              p.element.style.transform = 'scale(1)';
+          }
+      });
+      currentPath = [];
+  };
+
+  const isStraightLine = (path) => {
+      if(path.length < 2) return true;
+      const dr = path[1].row - path[0].row;
+      const dc = path[1].col - path[0].col;
+      for(let i=2; i<path.length; i++) {
+          if((path[i].row - path[i-1].row) !== dr || (path[i].col - path[i-1].col) !== dc) {
+              return false;
+          }
+      }
+      return true;
+  };
+
+  const getWordFromPath = (path) => {
+      return path.map(p => q.grid[p.row][p.col]).join('');
+  };
+
+  cells.forEach(row => {
+      row.forEach(cell => {
           cell.onclick = () => {
               playClick();
               if(cell.classList.contains('found')) return;
-              
-              if(cell.classList.contains('selected')) {
-                  cell.classList.remove('selected');
-                  cell.style.transform = 'scale(1)';
-                  currentSelection = currentSelection.filter(x => x !== cell);
-              } else {
-                  cell.classList.add('selected');
-                  cell.style.transform = 'scale(0.9)';
-                  currentSelection.push(cell);
+
+              const r = parseInt(cell.dataset.row);
+              const c = parseInt(cell.dataset.col);
+
+              // إذا كان الزر محددًا مسبقًا، نلغي التحديد من هنا فصاعدًا
+              const existingIndex = currentPath.findIndex(p => p.row === r && p.col === c);
+              if(existingIndex >= 0) {
+                  for(let i = currentPath.length - 1; i >= existingIndex; i--) {
+                      currentPath[i].element.classList.remove('selected');
+                      currentPath[i].element.style.transform = 'scale(1)';
+                      currentPath.pop();
+                  }
+                  return;
               }
 
-              let currentWord = currentSelection.map(x => x.dataset.letter).join('');
-              let reversedWord = currentSelection.map(x => x.dataset.letter).reverse().join('');
+              // تحقق من الاتصال (يجب أن يكون مجاورًا للآخر)
+              if(currentPath.length > 0) {
+                  const last = currentPath[currentPath.length - 1];
+                  const dr = Math.abs(last.row - r);
+                  const dc = Math.abs(last.col - c);
+                  if(dr > 1 || dc > 1 || (dr === 0 && dc === 0)) {
+                      clearSelection();
+                      return;
+                  }
+              }
 
-              let match = q.wordsToFind.find(w => !w.found && (w.arabic === currentWord || w.arabic === reversedWord));
-              
+              cell.classList.add('selected');
+              cell.style.transform = 'scale(0.9)';
+              currentPath.push({row: r, col: c, element: cell});
+
+              if(currentPath.length < 2) return;
+
+              if(!isStraightLine(currentPath)) {
+                  clearSelection();
+                  return;
+              }
+
+              const word = getWordFromPath(currentPath);
+              const reversed = word.split('').reverse().join('');
+
+              const match = q.wordsToFind.find(w => 
+                  !w.found && (w.arabic === word || w.arabic === reversed)
+              );
+
               if(match) {
                   playCorrect();
                   match.found = true;
                   foundCount++;
-                  currentSelection.forEach(x => {
-                      x.classList.remove('selected');
-                      x.classList.add('found');
-                      x.style.backgroundColor = 'var(--success)';
-                      x.style.color = 'white';
-                      x.style.borderColor = 'var(--success-dark)';
-                      x.style.transform = 'scale(1)';
+                  currentPath.forEach(p => {
+                      p.element.classList.remove('selected');
+                      p.element.classList.add('found');
+                      p.element.style.backgroundColor = 'var(--success)';
+                      p.element.style.color = 'white';
+                      p.element.style.borderColor = 'var(--success-dark)';
+                      p.element.style.transform = 'scale(1)';
                   });
-                  currentSelection = [];
-                  
-                  // شطب الكلمة الأوزبكية
+                  currentPath = [];
+
                   const clueEl = document.getElementById('clue-' + match.arabic);
                   clueEl.style.textDecoration = 'line-through';
                   clueEl.style.backgroundColor = '#E1F5FE';
                   clueEl.style.color = 'var(--success-dark)';
-                  clueEl.style.borderColor = 'var(--success)';
 
                   if(foundCount === q.wordsToFind.length) {
                       activeAnswerData = true;
@@ -1155,15 +1251,12 @@ function renderWordSearch(q, container) {
                       cBtn.style.display = 'block';
                       cBtn.textContent = 'DAVOM ETISH';
                   }
-              } else if (currentSelection.length > 5) {
-                  // إذا أخطأ الطالب واختار حروف كثيرة، نقوم بتفريغها كنوع من المساعدة
-                  clearSelection();
+              } else if (currentPath.length > 6) {
+                  clearSelection(); // منع التحديد الطويل العشوائي
               }
           };
-          gridBox.appendChild(cell);
-      }
-  }
-  splitView.appendChild(gridBox);
+      });
+  });
 
   const clearBtn = document.createElement('button');
   clearBtn.className = 'btn';
@@ -1172,11 +1265,12 @@ function renderWordSearch(q, container) {
   clearBtn.style.boxShadow = '0 4px 0 #CCC';
   clearBtn.style.marginTop = '10px';
   clearBtn.style.fontSize = '16px';
-  clearBtn.textContent = '🧹 Tanlovni tozalash'; // مسح التحديد
+  clearBtn.textContent = '🧹 Tanlovni tozalash';
   clearBtn.onclick = () => { playClick(); clearSelection(); };
-  splitView.appendChild(clearBtn);
 
-  container.appendChild(splitView);
+  container.appendChild(clues);
+  container.appendChild(gridBox);
+  container.appendChild(clearBtn);
 }
 
 /* =========================================
