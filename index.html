@@ -74,45 +74,19 @@
     </div>
   </div>
 
-  <div id="screen-mistakes-intro" class="screen">
-    <div style="font-size: 80px; margin-bottom: 20px;">🛠️</div>
-    <h2 style="color: #CC7A00; font-size: 32px; margin-bottom: 15px;">Xatolarni to'g'rilaymiz!</h2>
-    <h3 dir="rtl" class="arabic-text" style="color: #CC7A00; text-align: center; margin-bottom: 20px;">فقرة مراجعة الأخطاء</h3>
-    <p style="font-size: 18px; color: var(--text); margin-bottom: 30px; line-height: 1.5;">
-      Siz ajoyibsiz! Qiyinchiliklar o'rganishning bir qismidir.<br>
-      Keling, darsda xato qilingan savollarni birgalikda qayta ko'rib chiqamiz.
-    </p>
-    <button class="btn btn-warning" onclick="startMistakesReview()">XATOLARNI TUZATISH</button>
-  </div>
-
   <div id="screen-lesson-complete" class="screen" style="justify-content: center; align-items: center; padding: 20px; text-align: center;">
     <div style="font-size: 80px; margin-bottom: 10px;" id="completion-emoji">🥳</div>
     <h2 style="color: var(--success); font-size: 28px; margin-bottom: 5px;">Dars yakunlandi!</h2>
     <p id="completion-msg" style="font-size: 16px; color: var(--text-muted); margin-bottom: 20px;">Mukammal!</p>
-    
-    <div style="background: var(--card); padding: 15px; border-radius: 16px; border: 2px solid var(--border); width: 100%; margin-bottom: 20px; display:flex; justify-content: space-around;">
-      <div>
-        <div style="font-size: 14px; color: var(--primary); font-weight:bold;">Natija</div>
-        <div style="font-size: 24px; font-weight:800; color: var(--primary-dark);"><span id="result-accuracy">100</span>%</div>
-      </div>
-      <div style="border-left: 2px solid var(--border); padding-left: 15px;">
-        <div style="font-size: 14px; color: var(--danger); font-weight:bold;">Xatolar</div>
-        <div style="font-size: 24px; font-weight:800; color: var(--danger-dark);"><span id="result-wrong">0</span></div>
-      </div>
-      <div style="border-left: 2px solid var(--border); padding-left: 15px;">
-        <div style="font-size: 14px; color: var(--warning); font-weight:bold;">XP</div>
-        <div style="font-size: 24px; font-weight:800;">+<span id="earned-xp">0</span></div>
-      </div>
-    </div>
     <button class="btn btn-primary" onclick="finishLesson()">DAVOM ETISH</button>
   </div>
 </div>
 
 <script src="script.js"></script>
-<div id="splash-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--primary); z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white; font-family: 'Nunito', sans-serif;">
+<div id="splash-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#1CB0F6; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white; font-family: 'Nunito', sans-serif;">
     <h1 style="font-size: 3rem;">تبيان</h1>
     <p style="font-size: 1.5rem; margin-bottom: 20px;">التعليم التفاعلي</p>
-    <button id="start-btn" style="padding: 15px 40px; font-size: 1.2rem; border-radius: 50px; border: none; background: white; color: var(--primary); font-weight: bold; cursor: pointer;">ابدأ الآن</button>
+    <button id="start-btn" style="padding: 15px 40px; font-size: 1.2rem; border-radius: 50px; border: none; background: white; color: #1CB0F6; font-weight: bold; cursor: pointer;">ابدأ الآن</button>
 </div>
 </body>
 </html>
