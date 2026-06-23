@@ -3,7 +3,23 @@ let progress = { totalXP: 0, streak: 0, completedLessons: [], unlockedLessons: [
 let state = { currentScreen: 'map', hearts: 5, currentLesson: null, qIndex: 0, queue: [], sessionXP: 0, wrongCount: 0, mistakes: [], isReviewMode: false, initialQCount: 0 };
 window._audioCtx = null;
 
-// التهيئة
+// --- التعديل الجديد: تفعيل الصوت وإخفاء شاشة البداية ---
+document.addEventListener('DOMContentLoaded', () => {
+    const startBtn = document.getElementById('start-btn');
+    if (startBtn) {
+        startBtn.addEventListener('click', function() {
+            // تفعيل نظام الصوت في المتصفح
+            window.speechSynthesis.resume();
+            const utterance = new SpeechSynthesisUtterance("");
+            window.speechSynthesis.speak(utterance);
+            
+            // إخفاء شاشة البداية
+            document.getElementById('splash-screen').style.display = 'none';
+        });
+    }
+});
+
+// التهيئة الأساسية
 window.onload = () => {
   fetch('data.json')
     .then(response => response.json())
@@ -21,23 +37,20 @@ window.onload = () => {
   }
 };
 
-// --- التعديل الخاص بالأندرويد ---
+// دالة الصوت المحدثة
 function speakArabic(text) {
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'ar-SA'; 
   u.rate = 0.85; 
   u.pitch = 1.0;
-
-  // إجبار الأندرويد على استئناف السياق الصوتي
   if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
   }
-  
   window.speechSynthesis.speak(u);
 }
 
-// --- بقية دوال التطبيق ---
+// --- بقية الدوال ---
 function showUserMessage(text) {
   const toast = document.getElementById('user-message-toast');
   toast.textContent = text;
@@ -171,6 +184,3 @@ function startLesson() {
   showScreen('exercise');
   renderQuestion();
 }
-
-// (هنا يمكنك لصق باقي الدوال المتعلقة بـ renderQuestion و checkAnswer و handleAnswer كما كانت في كودك الأصلي)
-// تأكد فقط من أنها تعمل بشكل صحيح مع المتغيرات الجديدة.
