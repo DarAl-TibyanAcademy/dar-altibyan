@@ -6,14 +6,222 @@
         "id": "l1", "title": "Salomlashish", "titleAr": "التَّحِيَّاتُ", "icon": "👋", "xp": 20,
         "vocabulary": [
           { "arabic": "السَّلَامُ عَلَيْكُمْ", "uzbek": "Assalomu alaykum" },
-          { "arabic": "مَرْحَبًا", "uzbek": "Salom / Marhabo" }
+          { "arabic": "وَعَلَيْكُمُ السَّلَامُ", "uzbek": "Va alaykum assalom" },
+          { "arabic": "مَرْحَبًا", "uzbek": "Salom / Marhabo" },
+          { "arabic": "أَهْلًا وَسَهْلًا", "uzbek": "Xush kelibsiz" },
+          { "arabic": "صَبَاحُ الْخَيْرِ", "uzbek": "Xayrli tong" },
+          { "arabic": "صَبَاحُ النُّورِ", "uzbek": "Tongingiz xayrli bo'lsin" },
+          { "arabic": "مَسَاءُ الْخَيْرِ", "uzbek": "Xayrli kech" },
+          { "arabic": "مَسَاءُ النُّورِ", "uzbek": "Kechingiz xayrli bo'lsin" }
         ],
         "questions": [
           { "type": "matchPairs", "pairs": [
             { "arabic": "السَّلَامُ عَلَيْكُمْ", "uzbek": "Assalomu alaykum" }, 
-            { "arabic": "مَرْحَبًا", "uzbek": "Salom" }
+            { "arabic": "مَرْحَبًا", "uzbek": "Salom" }, 
+            { "arabic": "أَهْلًا وَسَهْلًا", "uzbek": "Xush kelibsiz" },
+            { "arabic": "صَبَاحُ الْخَيْرِ", "uzbek": "Xayrli tong" },
+            { "arabic": "مَسَاءُ الْخَيْرِ", "uzbek": "Xayrli kech" }
           ]},
-          { "type": "fillBlank", "uzbek": "Xayrli kech (Javobi)", "arabic": "مَسَاءُ ___", "fullArabic": "مَسَاءُ النُّورِ", "blankWord": "النُّورِ", "choices": ["النُّورِ", "كِتَابٌ", "أَنْتَ"], "correct": "النُّورِ" }
+          { "type": "fillBlank", "uzbek": "Xayrli kech (Javobi)", "arabic": "مَسَاءُ ___", "fullArabic": "مَسَاءُ النُّورِ", "blankWord": "النُّورِ", "choices": ["النُّورِ", "كِتَابٌ", "أَنْتَ"], "correct": "النُّورِ" },
+          { "type": "listenSelect", "arabic": "أَهْلًا وَسَهْلًا", "uzbek": "Xush kelibsiz", "options": ["Assalomu alaykum", "Xayrli tong", "Xush kelibsiz", "Xayrli kech"], "correct": "Xush kelibsiz" },
+          { "type": "sentenceBuilder", "uzbek": "Va alaykum assalom", "arabic": "وَعَلَيْكُمُ السَّلَامُ", "words": ["وَعَلَيْكُمُ", "السَّلَامُ", "كِتَابٌ", "مَدِينَةٌ"], "distractors": ["كِتَابٌ", "مَدِينَةٌ"] }
+        ]
+      },
+      {
+        "id": "l2", "title": "Tanishuv", "titleAr": "التَّعَارُفُ", "icon": "🌍", "xp": 20,
+        "vocabulary": [
+          { "arabic": "أَنَا أَحْمَدُ، أَنَا مِنْ سُورِيَّةَ", "uzbek": "Men Ahmadman, men Suriyadanman" },
+          { "arabic": "أَنَا فَاطِمَةُ، أَنَا مِنَ الْمَغْرِبِ", "uzbek": "Men Fotimaman, men Marokashdanman" },
+          { "arabic": "أَنَا حَمَدُ، أَنَا مِنْ قَطَرَ", "uzbek": "Men Hamadman, men Qatardanman" },
+          { "arabic": "أَنَا سَلْمَى، أَنَا مِنْ لُبْنَانَ", "uzbek": "Men Salmoman, men Livandanman" },
+          { "arabic": "أَنَا وَائِلُ، أَنَا مِنْ مِصْرَ", "uzbek": "Men Voilman, men Misrdanman" },
+          { "arabic": "زَيْنَبُ، تُرْكِيَا", "uzbek": "Zaynab, Turkiya" },
+          { "arabic": "أَمْرِيكَا", "uzbek": "Amerika" }
+        ],
+        "questions": [
+          { "type": "sentenceBuilder", "uzbek": "Men Salmoman, men Livandanman", "arabic": "أَنَا سَلْمَى أَنَا مِنْ لُبْنَانَ", "words": ["أَنَا", "سَلْمَى", "أَنَا", "مِنْ", "لُبْنَانَ", "هَاتِفٌ", "فِي"], "distractors": ["هَاتِفٌ", "فِي"] },
+          { "type": "sentenceBuilder", "uzbek": "Men Voilman, men Misrdanman", "arabic": "أَنَا وَائِلُ أَنَا مِنْ مِصْرَ", "words": ["أَنَا", "وَائِلُ", "أَنَا", "مِنْ", "مِصْرَ", "بَابٌ"], "distractors": ["بَابٌ"] },
+          { "type": "matchPairs", "pairs": [
+            { "arabic": "سُورِيَّةَ", "uzbek": "Suriya" }, 
+            { "arabic": "الْمَغْرِبِ", "uzbek": "Marokash" }, 
+            { "arabic": "قَطَرَ", "uzbek": "Qatar" },
+            { "arabic": "تُرْكِيَا", "uzbek": "Turkiya" },
+            { "arabic": "أَمْرِيكَا", "uzbek": "Amerika" }
+          ]},
+          { "type": "fillBlank", "uzbek": "Men Zaynabman, men Turkiyadanman", "arabic": "أَنَا زَيْنَبُ، أَنَا ___ تُرْكِيَا.", "fullArabic": "أَنَا زَيْنَبُ، أَنَا مِنْ تُرْكِيَا.", "blankWord": "مِنْ", "choices": ["مِنْ", "إِلَى", "فِي"], "correct": "مِنْ" }
+        ]
+      },
+      {
+        "id": "l3", "title": "Savol berish", "titleAr": "السُّؤَالُ عَنِ الاسْمِ وَالْبَلَدِ", "icon": "❓", "xp": 20,
+        "vocabulary": [
+          { "arabic": "مَا اسْمُكَ؟", "uzbek": "Ismingiz nima? (erkak)" },
+          { "arabic": "اِسْمِي فَادِي.", "uzbek": "Mening ismim Fadi." },
+          { "arabic": "مِنْ أَيْنَ أَنْتَ؟", "uzbek": "Siz qayerdansiz? (erkak)" },
+          { "arabic": "أَنَا مِنْ مِصْرَ.", "uzbek": "Men Misrdanman." },
+          { "arabic": "مَا اسْمُكِ؟", "uzbek": "Ismingiz nima? (ayol)" },
+          { "arabic": "مِنْ أَيْنَ أَنْتِ؟", "uzbek": "Siz qayerdansiz? (ayol)" },
+          { "arabic": "اِسْمِي سُوزَانُ.", "uzbek": "Mening ismim Syuzan." }
+        ],
+        "questions": [
+          { "type": "fillBlank", "uzbek": "Ismingiz nima? (ayollarga)", "arabic": "مَا ___؟", "fullArabic": "مَا اسْمُكِ؟", "blankWord": "اسْمُكِ", "choices": ["اسْمُكِ", "اسْمُكَ", "قَلَمُكِ"], "correct": "اسْمُكِ" },
+          { "type": "sentenceBuilder", "uzbek": "Siz qayerdansiz? (erkaklarga)", "arabic": "مِنْ أَيْنَ أَنْتَ؟", "words": ["مِنْ", "أَيْنَ", "أَنْتَ؟", "هَلْ", "بَابٌ"], "distractors": ["هَلْ", "بَابٌ"] },
+          { "type": "listenSelect", "arabic": "اِسْمِي فَادِي", "uzbek": "Mening ismim Fadi", "options": ["Ismingiz nima?", "Mening ismim Fadi", "Men Turkiyadanman", "Uning ismini bilaman"], "correct": "Mening ismim Fadi" },
+          { "type": "matchPairs", "pairs": [
+            { "arabic": "مَا اسْمُكَ؟", "uzbek": "Ismingiz nima? (m)" }, 
+            { "arabic": "مِنْ أَيْنَ أَنْتَ؟", "uzbek": "Qayerdansiz? (m)" }, 
+            { "arabic": "مَا اسْمُكِ؟", "uzbek": "Ismingiz nima? (f)" }, 
+            { "arabic": "مِنْ أَيْنَ أَنْتِ؟", "uzbek": "Qayerdansiz? (f)" }
+          ]}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unit2", "title": "Tovushlar va So'zlar", "titleAr": "رَابِعاً: الْأَصْوَاتُ", "icon": "🗣️",
+    "lessons": [
+      {
+        "id": "l4", "title": "So'zlar 1", "titleAr": "مُفْرَدَاتٌ ١", "icon": "📖", "xp": 20,
+        "vocabulary": [
+          { "arabic": "جَبَلٌ", "uzbek": "Tog'" },
+          { "arabic": "هَرَمٌ", "uzbek": "Ehrom (Piramida)" },
+          { "arabic": "بَابٌ", "uzbek": "Eshik" },
+          { "arabic": "مَكْتَبَةٌ", "uzbek": "Kutubxona" },
+          { "arabic": "بِنْتٌ", "uzbek": "Qiz" },
+          { "arabic": "عِنَبٌ", "uzbek": "Uzum" },
+          { "arabic": "قَهْوَةٌ", "uzbek": "Qahva" },
+          { "arabic": "مِقَصٌّ", "uzbek": "Qaychi" }
+        ],
+        "questions": [
+          { "type": "wordSearch", 
+            "instruction": "Jadvaldan quyidagi 5 ta so'zni toping (Harflarni ketma-ket bosing):",
+            "wordsToFind": [
+              { "arabic": "جبل", "uzbek": "Tog'" },
+              { "arabic": "باب", "uzbek": "Eshik" },
+              { "arabic": "بنت", "uzbek": "Qiz" },
+              { "arabic": "عنب", "uzbek": "Uzum" },
+              { "arabic": "قهوة", "uzbek": "Qahva" }
+            ],
+            "grid": [
+              ["ج", "ب", "ل", "ا", "ك", "م"],
+              ["س", "ق", "ه", "و", "ة", "ي"],
+              ["د", "ص", "ع", "ن", "ب", "ف"],
+              ["ز", "ط", "ب", "ن", "ت", "ش"],
+              ["ر", "ع", "ب", "ا", "ب", "خ"],
+              ["غ", "ه", "ل", "و", "ن", "م"]
+            ]
+          },
+          { "type": "listenSelect", "arabic": "مِقَصٌّ", "uzbek": "Qaychi", "options": ["Kutubxona", "Eshik", "Qaychi", "Kasalxona"], "correct": "Qaychi" },
+          { "type": "matchPairs", "pairs": [
+            { "arabic": "بَابٌ", "uzbek": "Eshik" }, 
+            { "arabic": "هَرَمٌ", "uzbek": "Ehrom" },
+            { "arabic": "قَهْوَةٌ", "uzbek": "Qahva" },
+            { "arabic": "جَبَلٌ", "uzbek": "Tog'" },
+            { "arabic": "عِنَبٌ", "uzbek": "Uzum" }
+          ]},
+          { "type": "letterGrid", "uzbek": "Qaychi", "arabic": "مِقَصٌّ", "letters": ["مِ", "قَ", "صٌّ", "بِ", "ا", "لَ"] }
+        ]
+      },
+      {
+        "id": "l5", "title": "So'zlar 2", "titleAr": "مُفْرَدَاتٌ ٢", "icon": "🔤", "xp": 20,
+        "vocabulary": [
+          { "arabic": "جَمَلٌ", "uzbek": "Tuya" },
+          { "arabic": "كِتَابٌ", "uzbek": "Kitob" },
+          { "arabic": "تَمْرٌ", "uzbek": "Xurmo" },
+          { "arabic": "ثُومٌ", "uzbek": "Sarimsoq" },
+          { "arabic": "مُسْتَشْفَى", "uzbek": "Kasalxona" },
+          { "arabic": "بَيْتٌ", "uzbek": "Uy" },
+          { "arabic": "حَافِلَةٌ", "uzbek": "Avtobus" }
+        ],
+        "questions": [
+          { "type": "listenSelect", "arabic": "مُسْتَشْفَى", "uzbek": "Kasalxona", "options": ["Kalit", "Kitob", "Kasalxona", "Uy"], "correct": "Kasalxona" },
+          { "type": "matchPairs", "pairs": [
+            { "arabic": "جَمَلٌ", "uzbek": "Tuya" }, 
+            { "arabic": "مُسْتَشْفَى", "uzbek": "Kasalxona" }, 
+            { "arabic": "تَمْرٌ", "uzbek": "Xurmo" },
+            { "arabic": "كِتَابٌ", "uzbek": "Kitob" },
+            { "arabic": "ثُومٌ", "uzbek": "Sarimsoq" }
+          ]},
+          { "type": "letterGrid", "uzbek": "Avtobus", "arabic": "حَافِلَةٌ", "letters": ["حَ", "ا", "فِ", "لَ", "ةٌ", "بِ"] },
+          { "type": "letterGrid", "uzbek": "Tuya", "arabic": "جَمَلٌ", "letters": ["جَ", "مَ", "لٌ", "ك", "ا", "ص"] }
+        ]
+      },
+      {
+        "id": "l6", "title": "So'zlar 3 va She'r", "titleAr": "مُفْرَدَاتٌ ٣ وَشِعْر", "icon": "📜", "xp": 20,
+        "vocabulary": [
+          { "arabic": "مِفْتَاحٌ", "uzbek": "Kalit" },
+          { "arabic": "فَمٌ", "uzbek": "Og'iz" },
+          { "arabic": "دَلْوٌ", "uzbek": "Paqir" },
+          { "arabic": "فِيلٌ", "uzbek": "Fil" },
+          { "arabic": "هَاتِفٌ", "uzbek": "Telefon" },
+          { "arabic": "بَلَدٌ", "uzbek": "Davlat" },
+          { "arabic": "مَدِينَةٌ", "uzbek": "Shahar" },
+          { "arabic": "الْخَيْلُ، اللَّيْلُ، الْبَيْدَاءُ", "uzbek": "Otlar, tun, sahro" },
+          { "arabic": "السَّيْفُ، الرُّمْحُ", "uzbek": "Qilich, nayza" },
+          { "arabic": "الْقِرْطَاسُ، الْقَلَمُ", "uzbek": "Qog'oz, qalam" }
+        ],
+        "questions": [
+          { "type": "matchPairs", "pairs": [
+            { "arabic": "مِفْتَاحٌ", "uzbek": "Kalit" }, 
+            { "arabic": "هَاتِفٌ", "uzbek": "Telefon" }, 
+            { "arabic": "مَدِينَةٌ", "uzbek": "Shahar" },
+            { "arabic": "بَلَدٌ", "uzbek": "Davlat" },
+            { "arabic": "فِيلٌ", "uzbek": "Fil" }
+          ]},
+          { "type": "letterGrid", "uzbek": "Davlat", "arabic": "بَلَدٌ", "letters": ["بَ", "لَ", "دٌ", "مَ", "سَ", "ا"] },
+          { "type": "letterGrid", "uzbek": "Otlar", "arabic": "خَيْلٌ", "letters": ["خَ", "يْ", "لٌ", "ب", "ص", "د"] },
+          { "type": "sentenceBuilder", "uzbek": "She'rni yig'ing: Qog'oz va Qalam", "arabic": "الْقِرْطَاسُ وَالْقَلَمُ", "words": ["الْقِرْطَاسُ", "وَ", "الْقَلَمُ", "بَابٌ"], "distractors": ["بَابٌ"] }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unit3", "title": "Hafta kunlari", "titleAr": "خَامِساً: أَيَّامُ الْأُسْبُوعِ", "icon": "📅",
+    "lessons": [
+      {
+        "id": "l7", "title": "Kunlar", "titleAr": "أَيَّامُ الْأُسْبُوعِ", "icon": "📆", "xp": 20,
+        "vocabulary": [
+          { "arabic": "الْأَحَدُ", "uzbek": "Yakshanba" },
+          { "arabic": "الْإِثْنَيْنِ", "uzbek": "Dushanba" },
+          { "arabic": "الثُّلَاثَاءُ", "uzbek": "Seshanba" },
+          { "arabic": "الْأَرْبِعَاءُ", "uzbek": "Chorshanba" },
+          { "arabic": "الْخَمِيسُ", "uzbek": "Payshanba" },
+          { "arabic": "الْجُمُعَةُ", "uzbek": "Juma" },
+          { "arabic": "السَّبْتُ", "uzbek": "Shanba" }
+        ],
+        "questions": [
+          { "type": "listenSelect", "arabic": "الْأَرْبِعَاءُ", "uzbek": "Chorshanba", "options": ["Dushanba", "Seshanba", "Chorshanba", "Yakshanba"], "correct": "Chorshanba" },
+          { "type": "matchPairs", "pairs": [
+            { "arabic": "الْأَحَدُ", "uzbek": "Yakshanba" }, 
+            { "arabic": "الثُّلَاثَاءُ", "uzbek": "Seshanba" }, 
+            { "arabic": "الْخَمِيسُ", "uzbek": "Payshanba" },
+            { "arabic": "الْجُمُعَةُ", "uzbek": "Juma" },
+            { "arabic": "السَّبْتُ", "uzbek": "Shanba" }
+          ]},
+          { "type": "fillBlank", "uzbek": "Yakshanba ⟸ Dushanba ⟸ ___", "arabic": "الْأَحَدُ ⟸ الْإِثْنَيْنِ ⟸ ___", "fullArabic": "الثُّلَاثَاءُ", "blankWord": "الثُّلَاثَاءُ", "choices": ["الثُّلَاثَاءُ", "الْأَرْبِعَاءُ", "الْجُمُعَةُ"], "correct": "الثُّلَاثَاءُ" },
+          { "type": "sentenceBuilder", "uzbek": "Tartiblang: Chorshanba Payshanba Juma", "arabic": "الْأَرْبِعَاءُ الْخَمِيسُ الْجُمُعَةُ", "words": ["الْأَرْبِعَاءُ", "الْخَمِيسُ", "الْجُمُعَةُ", "كِتَابٌ"], "distractors": ["كِتَابٌ"] }
+        ]
+      },
+      {
+        "id": "l8", "title": "Bugun va Ertaga", "titleAr": "الْيَوْمُ، الْغَدُ، الْأَمْسُ", "icon": "⏳", "xp": 20,
+        "vocabulary": [
+          { "arabic": "مَا الْيَوْمُ؟", "uzbek": "Bugun qaysi kun?" },
+          { "arabic": "الْيَوْمُ", "uzbek": "Bugun" },
+          { "arabic": "مَا الْغَدُ؟", "uzbek": "Ertaga qaysi kun?" },
+          { "arabic": "الْغَدُ", "uzbek": "Ertaga" },
+          { "arabic": "مَا الْأَمْسُ؟", "uzbek": "Kecha qaysi kun edi?" },
+          { "arabic": "الْأَمْسُ", "uzbek": "Kecha" }
+        ],
+        "questions": [
+          { "type": "fillBlank", "uzbek": "Agar bugun Yakshanba bo'lsa, ertaga qaysi kun?", "arabic": "إِذَا كَانَ الْيَوْمُ الْأَحَدُ، فَمَا الْغَدُ؟ ___", "fullArabic": "الْغَدُ الْإِثْنَيْنِ.", "blankWord": "الْإِثْنَيْنِ", "choices": ["الْإِثْنَيْنِ", "السَّبْتُ", "الثُّلَاثَاءُ"], "correct": "الْإِثْنَيْنِ" },
+          { "type": "sentenceBuilder", "uzbek": "Agar bugun Shanba bo'lsa, kecha qaysi kun edi? Kecha Juma.", "arabic": "مَا الْأَمْسُ؟ الْأَمْسُ الْجُمُعَةُ", "words": ["مَا", "الْأَمْسُ؟", "الْأَمْسُ", "الْجُمُعَةُ", "كِتَابٌ", "مَدِينَةٌ"], "distractors": ["كِتَابٌ", "مَدِينَةٌ"] },
+          { "type": "matchPairs", "pairs": [
+            { "arabic": "الْيَوْمُ", "uzbek": "Bugun" }, 
+            { "arabic": "الْغَدُ", "uzbek": "Ertaga" }, 
+            { "arabic": "الْأَمْسُ", "uzbek": "Kecha" },
+            { "arabic": "مَا اسْمُكَ؟", "uzbek": "Ismingiz nima? (m)" },
+            { "arabic": "مِنْ أَيْنَ أَنْتِ؟", "uzbek": "Qayerdansiz? (f)" }
+          ]},
+          { "type": "listenSelect", "arabic": "مَا الْأَمْسُ؟", "uzbek": "Kecha qaysi kun edi?", "options": ["Ertaga qaysi kun?", "Bugun qaysi kun?", "Kecha qaysi kun edi?", "Ismingiz nima?"], "correct": "Kecha qaysi kun edi?" }
         ]
       }
     ]
