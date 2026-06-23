@@ -1,0 +1,21 @@
+[
+  {
+    "id": "unit1", "title": "Salomlashish va Tanishtirish", "titleAr": "أَوَّلاً وَثَانِياً", "icon": "🤝",
+    "lessons": [
+      {
+        "id": "l1", "title": "Salomlashish", "titleAr": "التَّحِيَّاتُ", "icon": "👋", "xp": 20,
+        "vocabulary": [
+          { "arabic": "السَّلَامُ عَلَيْكُمْ", "uzbek": "Assalomu alaykum" },
+          { "arabic": "مَرْحَبًا", "uzbek": "Salom / Marhabo" }
+        ],
+        "questions": [
+          { "type": "matchPairs", "pairs": [
+            { "arabic": "السَّلَامُ عَلَيْكُمْ", "uzbek": "Assalomu alaykum" }, 
+            { "arabic": "مَرْحَبًا", "uzbek": "Salom" }
+          ]},
+          { "type": "fillBlank", "uzbek": "Xayrli kech (Javobi)", "arabic": "مَسَاءُ ___", "fullArabic": "مَسَاءُ النُّورِ", "blankWord": "النُّورِ", "choices": ["النُّورِ", "كِتَابٌ", "أَنْتَ"], "correct": "النُّورِ" }
+        ]
+      }
+    ]
+  }
+]
