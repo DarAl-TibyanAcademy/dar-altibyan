@@ -2,43 +2,44 @@ let curriculum = [];
 let progress = { totalXP: 0, streak: 0, completedLessons: [], unlockedLessons: ['l1'] };
 let state = { currentScreen: 'map', hearts: 5, currentLesson: null, qIndex: 0, queue: [], sessionXP: 0, wrongCount: 0, mistakes: [], isReviewMode: false, initialQCount: 0, activeAnswerData: null };
 
-window.currentUtterance = null;
+// --- إعدادات ElevenLabs ---
+const ELEVENLABS_API_KEY = 'sk_f2fda7b99d1730fc8975753436bda01f42e5e5a6983c597d'; 
+const VOICE_ID = '21m00Tcm4TlvDq8ikWAM'; 
+const audioCache = {};
 
-// تهيئة الصوت عند ضغط المستخدم (مفتاح الحل)
-document.addEventListener('DOMContentLoaded', () => {
-    const startBtn = document.getElementById('start-btn');
-    if (startBtn) {
-        startBtn.addEventListener('click', function() {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.resume();
-                // صوت صامت لتفعيل القناة
-                const silent = new SpeechSynthesisUtterance(" ");
-                silent.volume = 0;
-                window.speechSynthesis.speak(silent);
-            }
-            document.getElementById('splash-screen').style.display = 'none';
-        });
+// --- دالة النطق الاحترافية ---
+async function speakArabic(text) {
+    if (audioCache[text]) {
+        new Audio(audioCache[text]).play();
+        return;
     }
-});
 
-// دالة الصوت المحسنة
-function speakArabic(text) {
-    if (!window.speechSynthesis) return;
+    try {
+        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+            method: 'POST',
+            headers: {
+                'xi-api-key': ELEVENLABS_API_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                text: text,
+                model_id: "eleven_multilingual_v2",
+                voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+            })
+        });
 
-    window.speechSynthesis.cancel();
-    
-    setTimeout(() => {
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'ar-SA';
-        u.rate = 0.85;
-        u.volume = 1;
-        
-        // إبقاء المرجع لمنع الحذف بواسطة المتصفح
-        window.currentUtterance = u;
-        window.speechSynthesis.speak(u);
-    }, 100);
+        if (!response.ok) throw new Error('فشل في جلب الصوت');
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        audioCache[text] = audioUrl;
+        new Audio(audioUrl).play();
+    } catch (error) {
+        console.error("خطأ ElevenLabs:", error);
+    }
 }
 
+// --- بقية دوال النظام ---
 window.onload = () => {
     fetch('data.json')
         .then(r => r.json())
