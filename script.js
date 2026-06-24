@@ -38,8 +38,8 @@ async function speakArabic(text) {
     }
 
     // --- ضع مفاتيحك هنا ---
-    const apiKey = 'sk_f2fda7b99d1730fc8975753436bda01f42e5e5a6983c597d';
-    const voiceId = '21m00Tcm4TlvDq8ikWAM'; // المعرف الذي تستخدمه حالياً
+    const apiKey = 'sk_f2fda7b99d1730fc8975753436bda01f42e5e5a6983c597d'; 
+    const voiceId = '21m00Tcm4TlvDq8ikWAM'; 
 
     const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
 
@@ -49,12 +49,13 @@ async function speakArabic(text) {
         'Content-Type': 'application/json'
     };
 
+    // تغيير النموذج إلى turbo_v2_5 لأنه خفيف ومتاح للحسابات المجانية بمرونة أعلى
     const body = JSON.stringify({
         text: text,
-        model_id: "eleven_multilingual_v2", 
+        model_id: "eleven_turbo_v2_5", 
         voice_settings: {
             stability: 0.5,
-            similarity_boost: 0.7
+            similarity_boost: 0.75
         }
     });
 
@@ -65,7 +66,7 @@ async function speakArabic(text) {
             body: body
         });
 
-        // إذا كان الرد يحمل خطأ 402 أو أي خطأ آخر، ننتقل فوراً للـ Fallback
+        // إذا واجه خطأ المزامنة أو الدفع ننتقل فوراً للبديل
         if (!response.ok) {
             throw new Error(`ElevenLabs Error: ${response.status}`);
         }
@@ -78,7 +79,7 @@ async function speakArabic(text) {
 
     } catch (error) {
         console.warn('ElevenLabs failed, switching to Google/System Voice...', error);
-        // التحويل الصامت والآمن للصوت البديل في حال نفاد الرصيد
+        // التحويل التلقائي للصوت البديل الافتراضي في حال حدوث أي مشكلة في السيرفر
         fallbackSpeakArabic(text);
     }
 }
@@ -87,7 +88,7 @@ async function speakArabic(text) {
 function fallbackSpeakArabic(text) {
     if (!window.speechSynthesis) return;
     
-    window.speechSynthesis.cancel(); // تنظيف أي طابور صوتي قديم
+    window.speechSynthesis.cancel(); 
     
     setTimeout(() => {
         const u = new SpeechSynthesisUtterance(text);
