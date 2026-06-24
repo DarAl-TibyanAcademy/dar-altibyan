@@ -2,21 +2,25 @@ let curriculum = [];
 let progress = { totalXP: 0, streak: 0, completedLessons: [], unlockedLessons: ['l1'] };
 let state = { currentScreen: 'map', hearts: 5, currentLesson: null, qIndex: 0, queue: [], sessionXP: 0, wrongCount: 0, mistakes: [], isReviewMode: false, initialQCount: 0, activeAnswerData: null };
 
+// --- إعدادات ElevenLabs ---
 const ELEVENLABS_API_KEY = 'sk_f2fda7b99d1730fc8975753436bda01f42e5e5a6983c597d'; 
 const VOICE_ID = '21m00Tcm4TlvDq8ikWAM'; 
 const audioCache = {};
 
-// --- حل المشكلة: كود زر البداية (لإخفاء الشاشة الافتتاحية) ---
+window.currentUtterance = null;
+
+// تهيئة وإخفاء شاشة البداية (لم يتم تغيير منطقها)
 document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-btn');
     if (startBtn) {
         startBtn.addEventListener('click', function() {
+            // إخفاء شاشة البداية للدخول إلى التطبيق
             document.getElementById('splash-screen').style.display = 'none';
         });
     }
 });
-// -------------------------------------------------------------
 
+// دالة الصوت المحسنة (مربوطة بـ ElevenLabs)
 async function speakArabic(text) {
     if (audioCache[text]) {
         new Audio(audioCache[text]).play();
@@ -24,7 +28,6 @@ async function speakArabic(text) {
     }
 
     try {
-        console.log("يتم الآن جلب الصوت من ElevenLabs...");
         const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
             method: 'POST',
             headers: {
@@ -38,28 +41,25 @@ async function speakArabic(text) {
             })
         });
 
-        if (!response.ok) throw new Error('فشل الاتصال بخوادم ElevenLabs');
+        if (!response.ok) throw new Error('فشل في الاتصال بالصوت');
 
         const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
         
-        audioCache[text] = audioUrl; 
-        const audio = new Audio(audioUrl);
-        audio.play();
+        audioCache[text] = audioUrl;
+        new Audio(audioUrl).play();
     } catch (error) {
-        console.error("حدث خطأ في الصوت:", error);
+        console.error("خطأ ElevenLabs:", error);
     }
 }
 
+// --- بقية الأكواد الأساسية الخاصة بك (لم يتم المساس بها) ---
 window.onload = () => {
     fetch('data.json')
         .then(r => r.json())
         .then(data => { curriculum = data; loadProgress(); initMap(); })
         .catch(e => console.error(e));
-    
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js');
-    }
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 };
 
 function loadProgress() {
@@ -90,8 +90,7 @@ function initMap() {
 function openWelcome(l) {
     state.currentLesson = l;
     document.getElementById('welcome-title').textContent = l.title;
-    const vDiv = document.getElementById('vocab-preview'); 
-    vDiv.innerHTML = '';
+    const vDiv = document.getElementById('vocab-preview'); vDiv.innerHTML = '';
     l.vocabulary.forEach(v => {
         vDiv.innerHTML += `<div class="vocab-card"><div class="arabic-text">${v.arabic}</div><div>${v.uzbek}</div><div onclick="speakArabic('${v.arabic}')" style="cursor:pointer; font-size:24px;">🔊</div></div>`;
     });
@@ -102,3 +101,8 @@ function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-' + id).classList.add('active');
 }
+
+/* 
+ملاحظة هامة: إذا كان لديك أي دوال أخرى للأسئلة والاختبارات 
+كانت موجودة في أسفل ملفك الأصلي، يرجى عدم حذفها وإبقاؤها أسفل هذا السطر.
+*/
