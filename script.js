@@ -26,9 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// دالة الصوت المحسنة باستخدام ElevenLabs
+// دالة الصوت المحسنة باستخدام ElevenLabs مع نظام البديل الاحتياطي
 async function speakArabic(text) {
-    // إيقاف أي صوت يعمل حالياً إذا تم الضغط على زر آخر
     if (window.currentAudio) {
         window.currentAudio.pause();
         window.currentAudio.currentTime = 0;
@@ -37,7 +36,7 @@ async function speakArabic(text) {
         window.speechSynthesis.cancel();
     }
 
-    // --- ضع مفاتيحك هنا ---
+    // --- ضع مفاتيحك الخاصة هنا ---
     const apiKey = 'sk_f2fda7b99d1730fc8975753436bda01f42e5e5a6983c597d'; 
     const voiceId = '21m00Tcm4TlvDq8ikWAM'; 
 
@@ -49,7 +48,6 @@ async function speakArabic(text) {
         'Content-Type': 'application/json'
     };
 
-    // تغيير النموذج إلى turbo_v2_5 لأنه خفيف ومتاح للحسابات المجانية بمرونة أعلى
     const body = JSON.stringify({
         text: text,
         model_id: "eleven_turbo_v2_5", 
@@ -66,20 +64,17 @@ async function speakArabic(text) {
             body: body
         });
 
-        // إذا واجه خطأ المزامنة أو الدفع ننتقل فوراً للبديل
         if (!response.ok) {
             throw new Error(`ElevenLabs Error: ${response.status}`);
         }
 
-        // تحويل الاستجابة إلى ملف صوتي وتشغيله
         const blob = await response.blob();
         const audioUrl = URL.createObjectURL(blob);
         window.currentAudio = new Audio(audioUrl);
         window.currentAudio.play();
 
     } catch (error) {
-        console.warn('ElevenLabs failed, switching to Google/System Voice...', error);
-        // التحويل التلقائي للصوت البديل الافتراضي في حال حدوث أي مشكلة في السيرفر
+        console.warn('ElevenLabs failed, switching to Fallback Voice...', error);
         fallbackSpeakArabic(text);
     }
 }
@@ -87,9 +82,7 @@ async function speakArabic(text) {
 // دالة بديلة تستخدم صوت المتصفح الافتراضي كحل احتياطي جاهز دائماً
 function fallbackSpeakArabic(text) {
     if (!window.speechSynthesis) return;
-    
     window.speechSynthesis.cancel(); 
-    
     setTimeout(() => {
         const u = new SpeechSynthesisUtterance(text);
         u.lang = 'ar-SA';
@@ -112,6 +105,10 @@ function loadProgress() {
     if (data) progress = { ...progress, ...JSON.parse(data) };
 }
 
+function saveProgress() {
+    localStorage.setItem('alTibyanProgressUz_v4', JSON.stringify(progress));
+}
+
 function initMap() {
     const path = document.getElementById('lesson-path');
     path.innerHTML = '';
@@ -130,6 +127,8 @@ function initMap() {
             path.appendChild(node);
         });
     });
+    document.getElementById('nav-xp').textContent = progress.totalXP;
+    document.getElementById('nav-streak').textContent = progress.streak;
 }
 
 function openWelcome(l) {
@@ -140,6 +139,139 @@ function openWelcome(l) {
         vDiv.innerHTML += `<div class="vocab-card"><div class="arabic-text">${v.arabic}</div><div>${v.uzbek}</div><div onclick="speakArabic('${v.arabic.replace(/'/g, "\\'")}')" style="cursor:pointer; font-size:24px;">🔊</div></div>`;
     });
     showScreen('welcome');
+}
+
+function startLesson() {
+    state.hearts = 5;
+    state.qIndex = 0;
+    state.sessionXP = 0;
+    state.wrongCount = 0;
+    state.mistakes = [];
+    state.isReviewMode = false;
+    state.queue = [...state.currentLesson.questions];
+    state.initialQCount = state.queue.length;
+    updateHeartsUI();
+    showScreen('game');
+    nextQuestion();
+}
+
+function nextQuestion() {
+    state.activeAnswerData = null;
+    document.getElementById('btn-check').style.display = 'block';
+    document.getElementById('btn-next').style.display = 'none';
+    const footer = document.getElementById('game-footer');
+    footer.className = 'game-footer';
+    document.getElementById('feedback-msg').textContent = '';
+
+    if (state.hearts <= 0) {
+        endSession(false);
+        return;
+    }
+
+    if (state.qIndex >= state.queue.length) {
+        if (state.mistakes.length > 0 && !state.isReviewMode) {
+            state.isReviewMode = true;
+            state.queue = [...state.mistakes];
+            state.qIndex = 0;
+            state.mistakes = [];
+            alert("Keling, xatolaringizni takrorlaymiz!");
+        } else {
+            endSession(true);
+            return;
+        }
+    }
+
+    const progressPercent = (state.qIndex / state.queue.length) * 100;
+    document.getElementById('progress-fill').style.width = `${progressPercent}%`;
+
+    const q = state.queue[state.qIndex];
+    document.getElementById('question-text').textContent = q.question;
+
+    const container = document.getElementById('options-container');
+    container.innerHTML = '';
+
+    if (q.type === 'mcq') {
+        q.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt;
+            btn.onclick = () => {
+                document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                state.activeAnswerData = opt;
+            };
+            container.appendChild(btn);
+        });
+    }
+}
+
+function checkAnswer() {
+    const q = state.queue[state.qIndex];
+    let isCorrect = false;
+
+    if (q.type === 'mcq') {
+        if (!state.activeAnswerData) { alert("Iltimos, javobni tanlang!"); return; }
+        isCorrect = (state.activeAnswerData === q.answer);
+    }
+
+    const footer = document.getElementById('game-footer');
+    const msg = document.getElementById('feedback-msg');
+
+    if (isCorrect) {
+        footer.classList.add('correct');
+        msg.innerHTML = `🎉 To'g'ri!`;
+        state.sessionXP += 10;
+    } else {
+        footer.classList.add('incorrect');
+        msg.innerHTML = `😢 Noto'g'ri! To'g'ri javob: <b>${q.answer}</b>`;
+        state.hearts--;
+        updateHeartsUI();
+        if (!state.isReviewMode) {
+            state.mistakes.push(q);
+        }
+    }
+
+    document.getElementById('btn-check').style.display = 'none';
+    document.getElementById('btn-next').style.display = 'block';
+}
+
+function nextAction() {
+    state.qIndex++;
+    nextQuestion();
+}
+
+function updateHeartsUI() {
+    document.getElementById('game-hearts').textContent = `❤️ ${state.hearts}`;
+}
+
+function endSession(success) {
+    showScreen('result');
+    const title = document.getElementById('result-title');
+    const xpText = document.getElementById('result-xp');
+
+    if (success) {
+        title.textContent = "Tabriklaymiz! Darsni tugatdingiz!";
+        xpText.textContent = `Siz ${state.sessionXP} XP qo'lga kiritdingiz!`;
+        progress.totalXP += state.sessionXP;
+        
+        if (!progress.completedLessons.includes(state.currentLesson.id)) {
+            progress.completedLessons.push(state.currentLesson.id);
+            const nextLId = 'l' + (parseInt(state.currentLesson.id.replace('l', '')) + 1);
+            if (!progress.unlockedLessons.includes(nextLId)) {
+                progress.unlockedLessons.push(nextLId);
+            }
+        }
+        progress.streak++;
+        saveProgress();
+    } else {
+        title.textContent = "O'yin tugadi! Qalblaringiz qolmadi.";
+        xpText.textContent = "Xafa bo'lmang, qaytadan urinib ko'ring!";
+    }
+}
+
+function goHome() {
+    initMap();
+    showScreen('map');
 }
 
 function showScreen(id) {
