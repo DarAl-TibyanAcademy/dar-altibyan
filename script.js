@@ -2,19 +2,24 @@ let curriculum = [];
 let progress = { totalXP: 0, streak: 0, completedLessons: [], unlockedLessons: ['l1'] };
 let state = { currentScreen: 'map', hearts: 5, currentLesson: null, qIndex: 0, queue: [], sessionXP: 0, wrongCount: 0, mistakes: [], isReviewMode: false, initialQCount: 0, activeAnswerData: null };
 
-// --- إعدادات ElevenLabs ---
+// 1. هنا تضع مفتاح الـ API الجديد الخاص بك
 const ELEVENLABS_API_KEY = 'sk_f2fda7b99d1730fc8975753436bda01f42e5e5a6983c597d'; 
+
+// 2. هنا الـ ID الخاص بالصوت (هذا صوت Rachel، يمكنك تغييره لاحقاً)
 const VOICE_ID = '21m00Tcm4TlvDq8ikWAM'; 
+
 const audioCache = {};
 
-// --- دالة النطق الاحترافية ---
+// دالة الصوت الاحترافية والوحيدة الآن (تم حذف كود جوجل بالكامل)
 async function speakArabic(text) {
+    // التحقق من الذاكرة المؤقتة لتوفير رصيد ElevenLabs
     if (audioCache[text]) {
         new Audio(audioCache[text]).play();
         return;
     }
 
     try {
+        console.log("يتم الآن جلب الصوت من ElevenLabs...");
         const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
             method: 'POST',
             headers: {
@@ -23,29 +28,35 @@ async function speakArabic(text) {
             },
             body: JSON.stringify({
                 text: text,
-                model_id: "eleven_multilingual_v2",
+                model_id: "eleven_multilingual_v2", // موديل يدعم اللغة العربية بكفاءة
                 voice_settings: { stability: 0.5, similarity_boost: 0.75 }
             })
         });
 
-        if (!response.ok) throw new Error('فشل في جلب الصوت');
+        if (!response.ok) throw new Error('فشل الاتصال بخوادم ElevenLabs');
 
         const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
-        audioCache[text] = audioUrl;
-        new Audio(audioUrl).play();
+        
+        audioCache[text] = audioUrl; // تخزين الصوت
+        const audio = new Audio(audioUrl);
+        audio.play();
     } catch (error) {
-        console.error("خطأ ElevenLabs:", error);
+        console.error("حدث خطأ في الصوت:", error);
     }
 }
 
-// --- بقية دوال النظام ---
+// تهيئة التطبيق عند التحميل
 window.onload = () => {
     fetch('data.json')
         .then(r => r.json())
         .then(data => { curriculum = data; loadProgress(); initMap(); })
         .catch(e => console.error(e));
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+    
+    // تسجيل الـ Service Worker لعمل التطبيق بدون إنترنت (PWA)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+    }
 };
 
 function loadProgress() {
@@ -76,7 +87,8 @@ function initMap() {
 function openWelcome(l) {
     state.currentLesson = l;
     document.getElementById('welcome-title').textContent = l.title;
-    const vDiv = document.getElementById('vocab-preview'); vDiv.innerHTML = '';
+    const vDiv = document.getElementById('vocab-preview'); 
+    vDiv.innerHTML = '';
     l.vocabulary.forEach(v => {
         vDiv.innerHTML += `<div class="vocab-card"><div class="arabic-text">${v.arabic}</div><div>${v.uzbek}</div><div onclick="speakArabic('${v.arabic}')" style="cursor:pointer; font-size:24px;">🔊</div></div>`;
     });
