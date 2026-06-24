@@ -2,58 +2,89 @@ let curriculum = [];
 let progress = { totalXP: 0, streak: 0, completedLessons: [], unlockedLessons: ['l1'] };
 let state = { currentScreen: 'map', hearts: 5, currentLesson: null, qIndex: 0, queue: [], sessionXP: 0, wrongCount: 0, mistakes: [], isReviewMode: false, initialQCount: 0, activeAnswerData: null };
 
-// --- إعدادات ElevenLabs ---
-const ELEVENLABS_API_KEY = 'sk_f2fda7b99d1730fc8975753436bda01f42e5e5a6983c597d'; 
-const VOICE_ID = '21m00Tcm4TlvDq8ikWAM'; 
-const audioCache = {};
+// متغير لتتبع الملف الصوتي الحالي حتى نتمكن من إيقافه عند تشغيل صوت جديد
+window.currentAudio = null;
 
-window.currentUtterance = null;
-
-// تهيئة وإخفاء شاشة البداية (لم يتم تغيير منطقها)
+// تهيئة الصوت عند ضغط المستخدم (للسماح بتشغيل الصوت في المتصفحات وخاصة Safari/iOS)
 document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-btn');
     if (startBtn) {
         startBtn.addEventListener('click', function() {
-            // إخفاء شاشة البداية للدخول إلى التطبيق
+            // تفعيل سياق الصوت للمتصفح عبر تشغيل ملف فارغ صامت
+            const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+            silentAudio.play().catch(e => console.log('Audio init skipped:', e));
+            
             document.getElementById('splash-screen').style.display = 'none';
         });
     }
 });
 
-// دالة الصوت المحسنة (مربوطة بـ ElevenLabs)
+// دالة الصوت المحسنة باستخدام ElevenLabs
 async function speakArabic(text) {
-    if (audioCache[text]) {
-        new Audio(audioCache[text]).play();
-        return;
+    // إيقاف أي صوت يعمل حالياً إذا تم الضغط على زر آخر
+    if (window.currentAudio) {
+        window.currentAudio.pause();
+        window.currentAudio.currentTime = 0;
     }
 
+    // --- ضع مفاتيحك هنا ---
+    const apiKey = 'sk_f2fda7b99d1730fc8975753436bda01f42e5e5a6983c597d';
+    const voiceId = '2bnoa3wtrtcUW41TrSJM';
+
+    const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
+
+    const headers = {
+        'Accept': 'audio/mpeg',
+        'xi-api-key': apiKey,
+        'Content-Type': 'application/json'
+    };
+
+    const body = JSON.stringify({
+        text: text,
+        model_id: "eleven_multilingual_v2", 
+        voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.7
+        }
+    });
+
     try {
-        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+        const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'xi-api-key': ELEVENLABS_API_KEY,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                text: text,
-                model_id: "eleven_multilingual_v2",
-                voice_settings: { stability: 0.5, similarity_boost: 0.75 }
-            })
+            headers: headers,
+            body: body
         });
 
-        if (!response.ok) throw new Error('فشل في الاتصال بالصوت');
+        if (!response.ok) {
+            throw new Error('حدث خطأ أثناء جلب الصوت من ElevenLabs');
+        }
 
-        const audioBlob = await response.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-        
-        audioCache[text] = audioUrl;
-        new Audio(audioUrl).play();
+        // تحويل الاستجابة إلى ملف صوتي وتشغيله
+        const blob = await response.blob();
+        const audioUrl = URL.createObjectURL(blob);
+        window.currentAudio = new Audio(audioUrl);
+        window.currentAudio.play();
+
     } catch (error) {
-        console.error("خطأ ElevenLabs:", error);
+        console.error('Error fetching ElevenLabs audio:', error);
+        // نظام بديل (Fallback) في حال فشل الاتصال بالـ API أو انتهاء الرصيد
+        fallbackSpeakArabic(text);
     }
 }
 
-// --- بقية الأكواد الأساسية الخاصة بك (لم يتم المساس بها) ---
+// دالة بديلة تستخدم صوت المتصفح الافتراضي كحل احتياطي
+function fallbackSpeakArabic(text) {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    setTimeout(() => {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'ar-SA';
+        u.rate = 0.85;
+        u.volume = 1;
+        window.speechSynthesis.speak(u);
+    }, 100);
+}
+
 window.onload = () => {
     fetch('data.json')
         .then(r => r.json())
@@ -92,7 +123,7 @@ function openWelcome(l) {
     document.getElementById('welcome-title').textContent = l.title;
     const vDiv = document.getElementById('vocab-preview'); vDiv.innerHTML = '';
     l.vocabulary.forEach(v => {
-        vDiv.innerHTML += `<div class="vocab-card"><div class="arabic-text">${v.arabic}</div><div>${v.uzbek}</div><div onclick="speakArabic('${v.arabic}')" style="cursor:pointer; font-size:24px;">🔊</div></div>`;
+        vDiv.innerHTML += `<div class="vocab-card"><div class="arabic-text">${v.arabic}</div><div>${v.uzbek}</div><div onclick="speakArabic('${v.arabic.replace(/'/g, "\\'")}')" style="cursor:pointer; font-size:24px;">🔊</div></div>`;
     });
     showScreen('welcome');
 }
@@ -101,8 +132,3 @@ function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-' + id).classList.add('active');
 }
-
-/* 
-ملاحظة هامة: إذا كان لديك أي دوال أخرى للأسئلة والاختبارات 
-كانت موجودة في أسفل ملفك الأصلي، يرجى عدم حذفها وإبقاؤها أسفل هذا السطر.
-*/
