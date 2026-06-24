@@ -2,17 +2,22 @@ let curriculum = [];
 let progress = { totalXP: 0, streak: 0, completedLessons: [], unlockedLessons: ['l1'] };
 let state = { currentScreen: 'map', hearts: 5, currentLesson: null, qIndex: 0, queue: [], sessionXP: 0, wrongCount: 0, mistakes: [], isReviewMode: false, initialQCount: 0, activeAnswerData: null };
 
-// 1. هنا تضع مفتاح الـ API الجديد الخاص بك
 const ELEVENLABS_API_KEY = 'sk_f2fda7b99d1730fc8975753436bda01f42e5e5a6983c597d'; 
-
-// 2. هنا الـ ID الخاص بالصوت (هذا صوت Rachel، يمكنك تغييره لاحقاً)
 const VOICE_ID = '21m00Tcm4TlvDq8ikWAM'; 
-
 const audioCache = {};
 
-// دالة الصوت الاحترافية والوحيدة الآن (تم حذف كود جوجل بالكامل)
+// --- حل المشكلة: كود زر البداية (لإخفاء الشاشة الافتتاحية) ---
+document.addEventListener('DOMContentLoaded', () => {
+    const startBtn = document.getElementById('start-btn');
+    if (startBtn) {
+        startBtn.addEventListener('click', function() {
+            document.getElementById('splash-screen').style.display = 'none';
+        });
+    }
+});
+// -------------------------------------------------------------
+
 async function speakArabic(text) {
-    // التحقق من الذاكرة المؤقتة لتوفير رصيد ElevenLabs
     if (audioCache[text]) {
         new Audio(audioCache[text]).play();
         return;
@@ -28,7 +33,7 @@ async function speakArabic(text) {
             },
             body: JSON.stringify({
                 text: text,
-                model_id: "eleven_multilingual_v2", // موديل يدعم اللغة العربية بكفاءة
+                model_id: "eleven_multilingual_v2",
                 voice_settings: { stability: 0.5, similarity_boost: 0.75 }
             })
         });
@@ -38,7 +43,7 @@ async function speakArabic(text) {
         const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
         
-        audioCache[text] = audioUrl; // تخزين الصوت
+        audioCache[text] = audioUrl; 
         const audio = new Audio(audioUrl);
         audio.play();
     } catch (error) {
@@ -46,14 +51,12 @@ async function speakArabic(text) {
     }
 }
 
-// تهيئة التطبيق عند التحميل
 window.onload = () => {
     fetch('data.json')
         .then(r => r.json())
         .then(data => { curriculum = data; loadProgress(); initMap(); })
         .catch(e => console.error(e));
     
-    // تسجيل الـ Service Worker لعمل التطبيق بدون إنترنت (PWA)
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js');
     }
