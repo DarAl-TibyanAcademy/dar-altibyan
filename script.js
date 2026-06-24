@@ -14,6 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
             silentAudio.play().catch(e => console.log('Audio init skipped:', e));
             
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.resume();
+                const silent = new SpeechSynthesisUtterance(" ");
+                silent.volume = 0;
+                window.speechSynthesis.speak(silent);
+            }
+            
             document.getElementById('splash-screen').style.display = 'none';
         });
     }
@@ -26,10 +33,13 @@ async function speakArabic(text) {
         window.currentAudio.pause();
         window.currentAudio.currentTime = 0;
     }
+    if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+    }
 
     // --- ضع مفاتيحك هنا ---
     const apiKey = 'sk_f2fda7b99d1730fc8975753436bda01f42e5e5a6983c597d';
-    const voiceId = '2bnoa3wtrtcUW41TrSJM';
+    const voiceId = '21m00Tcm4TlvDq8ikWAM'; // المعرف الذي تستخدمه حالياً
 
     const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
 
@@ -55,8 +65,9 @@ async function speakArabic(text) {
             body: body
         });
 
+        // إذا كان الرد يحمل خطأ 402 أو أي خطأ آخر، ننتقل فوراً للـ Fallback
         if (!response.ok) {
-            throw new Error('حدث خطأ أثناء جلب الصوت من ElevenLabs');
+            throw new Error(`ElevenLabs Error: ${response.status}`);
         }
 
         // تحويل الاستجابة إلى ملف صوتي وتشغيله
@@ -66,23 +77,25 @@ async function speakArabic(text) {
         window.currentAudio.play();
 
     } catch (error) {
-        console.error('Error fetching ElevenLabs audio:', error);
-        // نظام بديل (Fallback) في حال فشل الاتصال بالـ API أو انتهاء الرصيد
+        console.warn('ElevenLabs failed, switching to Google/System Voice...', error);
+        // التحويل الصامت والآمن للصوت البديل في حال نفاد الرصيد
         fallbackSpeakArabic(text);
     }
 }
 
-// دالة بديلة تستخدم صوت المتصفح الافتراضي كحل احتياطي
+// دالة بديلة تستخدم صوت المتصفح الافتراضي كحل احتياطي جاهز دائماً
 function fallbackSpeakArabic(text) {
     if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
+    
+    window.speechSynthesis.cancel(); // تنظيف أي طابور صوتي قديم
+    
     setTimeout(() => {
         const u = new SpeechSynthesisUtterance(text);
         u.lang = 'ar-SA';
         u.rate = 0.85;
         u.volume = 1;
         window.speechSynthesis.speak(u);
-    }, 100);
+    }, 50);
 }
 
 window.onload = () => {
